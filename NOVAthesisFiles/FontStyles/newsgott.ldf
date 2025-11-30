@@ -1,0 +1,96 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/newsgott.ldf
+%% NOVA thesis configuration file
+%%
+%% Customization of font to use a Linux Libertine font set
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/newsgott.ldf}%
+
+\ifxeorlua{}{%
+  \ClassError{novathesis}{Font Style “newsgott” is not compatible with pdfLaTeX. Please use LuaLaTeX}{Please use LuaLaTeX}%
+}
+
+\ntcheckfonts{NewsGotT}
+            {Regular,Bold}
+            {https://github.com/joaomlourenco/novathesis-extras/}
+            {Fonts}
+
+
+\AtEndPreamble{%
+\RequirePackage[type1]{cabin}% used only by \mathsf
+\RequirePackage{amsthm}% load before newtxmath
+\RequirePackage[libertine,vvarbb]{newtxmath}% does not load minnewsgott because another Roman text package was specified
+
+\setmainfont{NewsGotT}[
+  Ligatures=TeX,
+  % Mapping=tex-text,
+  Path = NOVAthesisFiles/FontStyles/Fonts/,
+  UprightFont=NewsGotT-Regular.ttf,
+  BoldFont=NewsGotT-Bold.ttf,
+  AutoFakeSlant=0.15,
+  BoldSlantedFont=NewsGotT-Bold.ttf,
+  BoldItalicFont=NewsGotT-Bold.ttf,
+  BoldSlantedFeatures={FakeSlant=0.15},
+  BoldItalicFeatures={FakeSlant=0.15},
+  Scale=1.003764115,
+]
+
+% \setfontfamily\newsgott{n015003t.ttf}[
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   Path = NOVAthesisFiles/FontStyles/Fonts/,
+%   Scale=1.003764115,
+% ]
+%
+% \setfontfamily\newsgottbf{n015006t.ttf}[
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   Path = NOVAthesisFiles/FontStyles/Fonts/,
+%   Scale=1.003764115,
+% ]
+%
+% \setfontfamily\newsgottbfit{n015006t.ttf}[
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   Path = NOVAthesisFiles/FontStyles/Fonts/,
+%   BoldItalicFeatures={FakeSlant=0.15},
+%   Scale=1.003764115,
+% ]
+%
+% \setfontfamily\newsgottit{n015003t.ttf}[
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   Path = NOVAthesisFiles/FontStyles/Fonts/,
+%   ItalicFeatures={FakeSlant=0.15},
+%   Scale=1.003764115,
+% ]
+%
+% \setfontfamily\newsgottsl{n015003t.ttf}[
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   Path = NOVAthesisFiles/FontStyles/Fonts/,
+%   AutoFakeSlant=0.15,
+%   Scale=1.003764115,
+% ]
+%
+% \setfontfamily\newsgottlig{n015002t.ttf}[
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   Path = NOVAthesisFiles/FontStyles/Fonts/,
+%   Scale=1.003764115,
+% ]
+
+%
+% %https://sourcefoundry.org/hack/
+% \setmonofont{Hack}[
+% %Scale=MatchLowercase,
+% Scale=0.8,
+% Path = novathesis-files/FontStyles/fonts/,
+% Extension = .ttf,
+% Mapping=tex-text,
+% UprightFont=*-Regular,
+% BoldFont=*-Bold,
+% ItalicFont=*-Italic,
+% BoldItalicFont=*-BoldItalic]
+}
