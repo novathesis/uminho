@@ -3,7 +3,7 @@
 -----------------------------------------------------------------------------
 NOVATHESIS Build Assistant
 
-Version 7.6.3 (2025-11-30)
+Version 7.8.0 (2025-12-09)
 Copyright (C) 2004-25 by João M. Lourenço <joao.lourenco@fct.unl.pt>
 -----------------------------------------------------------------------------
 
@@ -206,7 +206,7 @@ def process_file(p: Path, patterns: Dict[re.Pattern, Callable[[str], str]]) -> i
         except Exception as e:
             print(f"{RED}❌ Failed to write {p}: {e}{RESET}")
     return changed
-def _update_progress_bar(current_line: int, total_lines: int, bar_length: int = 40) -> None:
+def _update_progress_bar(current_line: int, total_lines: int, bar_length: int = 37) -> None:
     """
     Update and display a progress bar based on the current line count.
     Args:
@@ -739,7 +739,7 @@ def main() -> None:
     )
     ap.add_argument(
         "-t", "--doctype",
-        default="msc",
+        default="phd",
         choices=["phd", "msc", "bsc"],
         help="Document type: 'phd', 'msc', 'bsc' (default: msc)"
     )

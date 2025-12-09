@@ -4,7 +4,7 @@
 %%  NOVATHESIS — novathesis.cls
 %% ----------------------------------------------------------------------------
 %% 
-%% Version 7.6.3 (2025-11-30)
+%% Version 7.8.0 (2025-12-09)
 %% Copyright (C) 2004-25 by João M. Lourenço <joao.lourenco@fct.unl.pt>
 %% Departamento de Informática (www.di.fct.unl.pt)
 %% Faculdade de Ciências e Tecnologia (www.fct.unl.pt)
@@ -361,7 +361,11 @@
   % SCHOOL
   schoolgiven/.new value        = {},
   school/.new cmd               = {\optionsalso{/novathesis/schoolgiven=#1}%
-                                   \StrCut{#1}{/}\@UNIV\@SCHL\StrCut{\@SCHL}{/}\@SCHL\@DEGREEACR%
+                                   % \typeout{XXX=#1}\XXXX
+                                   \StrCut{#1}{/}\@UNIV\@SCHL\StrCut{\@SCHL}{/}\@SCHL\@DEGREEACR
+                                   % \typeout{XXX=\@UNIV/\@SCHL/\@DEGREEACR}\XXXX
+                                   \IfStrEq{\@DEGREEACR}{}{\def\@DEGREEACR{\option{/novathesis/doctype}}}{}
+                                   % \typeout{XXX=\@UNIV/\@SCHL/\@DEGREEACR}\XXXX
                                   },
   school                        = nova/fct,
   % STYLES
@@ -371,7 +375,7 @@
   color/links/.new cmd          = {\@ifpackageloaded{hyperref}%
                                             {\hypersetup{allcolors=#1}}%
                                             {\PassOptionsToPackage{allcolors=#1}{hyperref}}},
-  color/gls/.new cmd             = {\AtEndPreamble{%\textcolor{#1}{##1}
+  glossaries/color/gls/.new cmd             = {\AtEndPreamble{%\textcolor{#1}{##1}
                                       \IfStrEq{#1}{None}{%
                                           \let\@glslink\glsplainhyperlink%
                                       }{%
@@ -408,7 +412,7 @@
   % MISC
   countsecondcover/.new toggle  = false,
   numberallpages/.new toggle    = false,
-  gnumberlist/.new toggle       = true,
+  glossaries/list/reverse/.new toggle       = true,
   tocintoc/.new toggle          = false,
   % DEBUG
   debug/.new list               = {},         % cover, index
@@ -968,7 +972,7 @@ end
   % \typeout{NTSETUP [/novathesis/\@UNIV/\@SCHL/#1/#2]}\NTSETUP%
   \ntfor\arg:={#2}\do{%
     \StrCut{\arg}{=}{\@ntopt}{\@ntval}%
-    % \typeout{NTSETUP2 [\@ntopt] = [\@ntval]}%
+    % \typeout{NTSETUP2 [\@ntopt] = [\@ntval]}\NTSETUP%
     \ifoptiondefined{/novathesis/\@UNIV/\@SCHL/#1/\@ntopt}%
                     {\options{/novathesis/\@UNIV/\@SCHL/#1/#2}}{%
     \ifoptiondefined{/novathesis/#1/\@ntopt}%
@@ -995,6 +999,14 @@ end
 % }
 
 
+\newcommand{\SpineSetup}[2][]{%
+  \NTAddToHook{print/spine/pre}{%
+    #1%
+    \NTSetup[spine] {#2}%
+  }%
+}
+
+
 % --------------------------------------------------------
 % Pass the remaining options to memoir
 % \letoptionlist{/options/remaining}\nt@remaining
@@ -1013,7 +1025,7 @@ end
 %     and HYPERLINK color
 \options{/novathesis/lang = \option{/novathesis/lang/main},
          /novathesis/color/links = DarkBlue,
-         /novathesis/color/gls = None,
+         /novathesis/glossaries/color/gls = None,
 }
 
 % \NTRunHook{memoir}
@@ -1035,7 +1047,6 @@ end
 \def\@LANG@MAIN{\option{/novathesis/lang/main}}
 \def\@LANG@MAIN@LONG{\thelanglong(\@LANG@MAIN)}
 
-\@ifmtarg{\@DEGREEACR}{\gdef\@DEGREEACR{\option{/novathesis/degreeacr/\@DOCCLASS}}}{}
 
 \bkmstring(1-1)={\thebkmstring(cover,\@LANG@MAIN)}
 \bkmstring(1-2)={\thebkmstring(incover,\@LANG@MAIN)}
@@ -1226,8 +1237,8 @@ end
 }
 
 %--------------------------------
-% “Process gnumberlist” option - after glossaries
-\iftoggle{/novathesis/gnumberlist}{}{\setupglossaries{nonumberlist}}%
+% “Process glossaries/list/reverse” option - after glossaries
+\iftoggle{/novathesis/glossaries/list/reverse}{}{\setupglossaries{nonumberlist}}%
 \AtEndPreamble{\@loadglossaryfiles\makeglossaries}%
 
 %--------------------------------
@@ -1992,11 +2003,11 @@ end
 }{}
 
 \ifoptionequal{/novathesis/spine/layout}{no}{}{%
-  \@nt@InputIfFileExists{spine.tex}{%
+  \@nt@InputIfFileExists{novathesis-spine.sty}{%
            {NOVAthesisFiles/Schools/\@UNIV/\@SCHL/}%
           ,{NOVAthesisFiles/Schools/\@UNIV/}%
           ,{NOVAthesisFiles/}%
-  }[][\ClassError{novathesis}{No “spine” file found.}{}]%
+  }[][\ClassError{novathesis}{No “novathesis-spine” file found.}{}]%
   \AtEndDocument{\csuse{ntprintspine}}%
 }
 
@@ -2077,13 +2088,15 @@ end
 \newcommand{\ntprintspine}{%
   \pagenumbering{roman}%
   \setcounter{page}{0}
+  \NTRunHook{print/spine/pre}%
   \iffileadded[spine]{cover}{%
     \optionlistdo{/@nt/file/cover/spine}{%
       \bgroup\thispagestyle{empty}%
       \@ntloadfile@i[\ClassError{novathesis}{Invalid cover file: “##1”}{}]{##1}%
       \egroup\clearforchapter%
     }%
-  }{\@ntprintspine\clearforchapter}%
+  }{\PrintBookSpine\clearforchapter}%
+  \NTRunHook{print/spine/post}%
 }
 
 \newcommand{\ntprintbackcover}{%
@@ -2950,14 +2963,17 @@ end
       \vfill%
       \raggedright\noindent%
       \textbf{\thesdgstring(\@LSHORT):}\\[1ex]
+      \edef\@sdgtype{\option{/novathesis/print/sgds/type}}
+      \IfFileExists{NOVAthesisFiles/Images/sdg-\@LSHORT/1-\@sdgtype.pdf}
+          {\def\@spnfolder{NOVAthesisFiles/Images/sdg-\@LSHORT}}
+          {\def\@spnfolder{NOVAthesisFiles/Images/sdg-en}}
       \noindent%\linespread{1.5}\selectfont
       \optionlistdo{/novathesis/print/sdgs/list}{%
         \stepcounter{sdgcnt}%
-        \edef\@sdgtype{\option{/novathesis/print/sgds/type}}
         \setbox0=\hbox{%
           % \typeout{FILE=NOVAthesisFiles/Images/sdg-\@LSHORT/##1-\XPTO}
             \includegraphics[width=\option{/novathesis/print/sdgs/size}]
-                            {NOVAthesisFiles/Images/sdg-\@LSHORT/##1-\@sdgtype}%
+                            {\@spnfolder/##1-\@sdgtype}%
         }%
         \ifdim \dimexpr\sdgdim + \wd0\relax > \textwidth\relax%
             \\[\@tempdimb]
