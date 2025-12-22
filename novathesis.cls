@@ -3,8 +3,8 @@
 %% ----------------------------------------------------------------------------
 %%  NOVATHESIS — novathesis.cls
 %% ----------------------------------------------------------------------------
-%% 
-%% Version 7.8.0 (2025-12-09)
+%%
+%% Version 7.8.1 (2025-12-22)
 %% Copyright (C) 2004-25 by João M. Lourenço <joao.lourenco@fct.unl.pt>
 %% Departamento de Informática (www.di.fct.unl.pt)
 %% Faculdade de Ciências e Tecnologia (www.fct.unl.pt)
@@ -130,10 +130,13 @@
 \ifdefined\NewDocumentCommand\else\RequirePackage{xparse}\fi   % load xparse if necessary
 \RequirePackage{xfor}
 \RequirePackage{iftex}
+\RequirePackage{ifplatform}
 \RequirePackage{etoolbox}
 \RequirePackage{xstring}
 \RequirePackage{varwidth}
 \RequirePackage{textcase}
+\RequirePackage{catchfile}  % for automatic downloading of fonts
+\RequirePackage{NOVAthesisFiles/stocksize}  % changing the physical and logical page layout
 \RequirePackage{NOVAthesisFiles/memory2}
 \RequirePackage{NOVAthesisFiles/nt-version}
 
@@ -163,7 +166,6 @@
 
 \ExplSyntaxOn
 
-
 %=======================================================================
 % \IfBeginsWithAnyOf {text} {comma_sep_list_of_prefixes} {true} {false}
 %=======================================================================
@@ -175,7 +177,7 @@
   {
     % 1. Reset the boolean flag
     \bool_set_false:N \l__user_match_found_bool
-    
+
     % 2. Map through the comma-separated list.
     % \clist_map_inline:nn automatically trims spaces *around* items (foo, bar)
     % but keeps spaces *inside* items (Hello World).
@@ -192,7 +194,7 @@
             \clist_map_break:
           }
       }
-      
+
     % 3. Execute the appropriate branch
     \bool_if:NTF \l__user_match_found_bool { #3 } { #4 }
   }
@@ -245,14 +247,14 @@
 \NewDocumentCommand{\ValidateLtxProcessor}{ m m m }
   {
     % #1 = Univ, #2 = School, #3 = Degree
-    
+
     % Reset flags
     \bool_set_false:N \l_novathesis_rule_found_bool
-    
+
     % -----------------------------------------------------
     % A. Hierarchy Lookup (Univ/Sch/Deg -> Univ/Sch -> Univ)
     % -----------------------------------------------------
-    
+
     % 1. Check Univ/School/Degree
     \prop_get:NeNTF \g_novathesis_proc_rules_prop { #1/#2/#3 } \l_novathesis_found_rule_tl
       { \bool_set_true:N \l_novathesis_rule_found_bool }
@@ -264,7 +266,7 @@
             % 3. Check Univ
             \prop_get:NnNTF \g_novathesis_proc_rules_prop { #1 } \l_novathesis_found_rule_tl
               { \bool_set_true:N \l_novathesis_rule_found_bool }
-              { 
+              {
                 % No rule found: Do nothing (Implicitly Valid)
               }
           }
@@ -273,15 +275,15 @@
     % -----------------------------------------------------
     % B. Validation Logic
     % -----------------------------------------------------
-    
+
     \bool_if:NT \l_novathesis_rule_found_bool
       {
         % Check if the current engine is in the allowed list
         \clist_if_in:NVF \l_novathesis_found_rule_tl \g_novathesis_current_engine_str
           {
             % ERROR: Engine not found in allowed list
-            \msg_error:nnxx { novathesis } { invalid-processor } 
-              { #1/#2/#3 } 
+            \msg_error:nnxx { novathesis } { invalid-processor }
+              { #1/#2/#3 }
               { \clist_use:Nn \l_novathesis_found_rule_tl { ,~ } }
           }
       }
@@ -340,7 +342,7 @@
   % \typeout{#2(#3)}%
   % \ifdatadefinedor{\@match}{#2}(#3)%
   %   {\protect\gdef#1{\csuse{the#2}(\@match)}#4}%
-  %   {\protect\gdef#1{}#5}%  
+  %   {\protect\gdef#1{}#5}%
   \ifdatadefinedor{\@match}{#2}(#3)%
     {\protect\xdef#1{\expanded{\csuse{the#2}(\@match)}}#4}%
     {\protect\xdef#1{}#5}%
@@ -481,155 +483,176 @@
 % --------------------------------------------------------
 % Automatically download necessary fonts if using lualatex
 % --------------------------------------------------------
-\ifluatex
-\RequirePackage{luacode}
-\begin{luacode}
--- timing helper (prefers wall time, otherwise CPU time)
-local function now()
-  local ok, socket = pcall(require, "socket")
-  if ok and socket.gettime then return socket.gettime() end
-  return os.clock()
-end
+\ExplSyntaxOn
 
--- mkdir -p using lfs when possible, else shell out
-local function mkdir_p(path)
-  path = (path or ""):gsub("\\","/")               -- normalize separators
-  if path == "" then return true end
-  local ok, lfs = pcall(require, "lfs")
-  if ok and lfs then
-    local accum = ""
-    -- keep leading "/" or drive letters intact
-    if path:match("^/") then accum = "/" end
-    if path:match("^[A-Za-z]:") then accum = path:sub(1,2) end
-    for part in path:gmatch("[^/]+") do
-      if accum == "" or accum:match("^[A-Za-z]:$") then
-        accum = accum .. part
-      elseif accum == "/" then
-        accum = "/" .. part
-      else
-        accum = accum .. "/" .. part
-      end
-      if not lfs.attributes(accum, "mode") then
-        local okmk = lfs.mkdir(accum)
-        if not okmk then return false end
-      end
-    end
-    return true
-  else
-    local is_win = package.config:sub(1,1) == "\\"
-    local cmd = is_win and ('mkdir "%s" >NUL 2>&1'):format(path)
-                     or ('mkdir -p "%s"'):format(path)
-    local rc = os.execute(cmd)
-    return rc == true or rc == 0
-  end
-end
+\NewDocumentCommand{\ntcheckfonts}{
+    O{ttf}
+    m
+    m
+    O{https://raw.githubusercontent.com/joaomlourenco/novathesis-extras/main/Fonts}
+    O{NOVAthesisFiles/FontStyles/Fonts} }
+{
+  % #1 = format (ttf)
+  % #2 = font name (Calibri)
+  % #3 = variants (Regular,Italic,Bold,BoldItalic)
+  % #4 = base URL
+  % #5 = target folder
 
--- get last path element of URL
-local function last_segment(url)
-  if not url or url == "" then return "" end
-  -- strip trailing slash
-  url = url:gsub("/+$","")
-  -- take everything after last "/"
-  local last = url:match("([^/]+)$") or url
-  -- if the last part looks like query-only, keep it verbatim
-  return last
-end
-
--- download URL -> filepath; returns ok, elapsed_seconds
-local function download_to(url, filepath)
-  -- try pure Lua (socket/http or ssl.https), else fallback to curl
-  local start_t = now()
-  local ok_socket, http = pcall(require, "socket.http")
-  local ltn12
-  if ok_socket then ltn12 = require("ltn12") end
-
-  local scheme = url:match("^(%w+):") or "http"
-  local ok = false
-
-  if scheme == "https" then
-    local ok_https, https = pcall(require, "ssl.https")
-    if ok_https and ltn12 then
-      local f, ferr = io.open(filepath, "wb")
-      if f then
-        local _, code = https.request{ url = url, sink = ltn12.sink.file(f) }
-        f:close()
-        ok = (code == 200)
-      end
-    end
-  elseif scheme == "http" and ok_socket and ltn12 then
-    local f, ferr = io.open(filepath, "wb")
-    if f then
-      local _, code = http.request{ url = url, sink = ltn12.sink.file(f) }
-      f:close()
-      ok = (code == 200)
-    end
-  end
-
-  if not ok then
-    -- fallback via curl (requires --shell-escape and curl in PATH)
-    local cmd = ('curl -L -s -o "%s" "%s"'):format(filepath, url)
-    local rc = os.execute(cmd)
-    ok = (rc == true or rc == 0)
-  end
-
-  local elapsed = now() - start_t
-  return ok, elapsed
-end
-
-function download_font(url, folder)
-  local last = last_segment(url)
-  local file = (folder:gsub("\\","/") .. "/" .. last):gsub("//+","/")
-
-  local made = mkdir_p(folder)
-  local ok, elapsed = false, 0.0
-  if made then ok, elapsed = download_to(url, file) end
-
-  -- Define LaTeX macros:
-  tex.print("\\def\\URL{" .. url .. "}")
-  tex.print("\\def\\FOLDER{" .. folder .. "}")
-  tex.print("\\def\\FilePath{" .. file .. "}")
-  tex.print("\\def\\ElapsedSeconds{" .. string.format("%.3f", elapsed) .. "}")
-  tex.print("\\def\\DownloadStatus{" .. (ok and "OK" or "FAILED") .. "}")
-end
-\end{luacode}
-
-% \DownloadFont{<URL>}{<FOLDER>}
-\newcommand{\DownloadFont}[2]{%
-  % Safely escape to Lua:
-  \directlua{download_font("\luaescapestring{#1}","\luaescapestring{#2}")}%
-  \typeout{         URL: \texttt{\URL}}
-  \typeout{      FOLDER: \texttt{\FOLDER}}
-  \typeout{        FILE: \texttt{\FilePath}}
-  \typeout{     SUCCESS: \texttt{\DownloadStatus}}
-  \typeout{TIME ELAPSED: \texttt{\ElapsedSeconds~s}}
+  % Check if shell escape is enabled (compatible with all engines)
+  \sys_if_shell_unrestricted:TF
+  {
+    \nt_check_fonts:nnnnn { #1 } { #2 } { #3 } { #4 } { #5 }
+  }
+  {
+    \msg_error:nnnn { ntfonts } { shell-escape-required } { \c_sys_jobname_str } { \ntcheckfonts }
+  }
 }
-\fi
 
+\msg_new:nnn { ntfonts } { shell-escape-required }
+{
+  Font~download~requires~shell~escape.~\\
+  Please~compile~with:~
+  \token_to_str:N lualatex \c_space_tl \c_sys_jobname_str \c_space_tl -shell-escape
+}
 
-% Check if a font file exists
-\newcommand*{\ntcheckfonts}[5][ttf]{%
-% #1 = font format
-% #2 = Font name
-% #3 = Variants to load: Regular,Italic,Bold,Boldltalic
-% #4 = Repository URL
-% #5 = Fonts folder in Repo 
-%    XeTeX: manual download from "URL/ZIP/FONTNAME.zip"
-% luaLaTeX: automatic download from "URL/FONTNAME/FONTNAME-VARIANT.FORMAT"
-    \ntfor\myi:={#3}\do{
-      \typeout{------------------NOVAthesisFiles/FontStyles/Fonts/#2-\myi.#1}
-      \IfFileExists{NOVAthesisFiles/FontStyles/Fonts/#2-\myi.#1}{\typeout{FONT '#2-\myi.#1' is available.}}%
-          {%
-          \ifluatex          
-              \typeout{Missing font “#2-\myi.#1”!  Downloading from “#4/#5/#2/#2-\myi.#1”}
-              \DownloadFont{#4/raw/refs/heads/main/#5/#2/#2-\myi.#1}{NOVAthesisFiles/FontStyles/Fonts}
-          \else
-              \ClassError{novathesis}
-                         {Missing font “#2-\myi.#1”! Please download from: “#4/ZIP/#2.zip” and expand it to “NOVAthesisFiles/FontStyles/Fonts/#2-\myi.#1”}
-                         {Please download from: “#4/ZIP/#2.zip” and expand it to “NOVAthesisFiles/FontStyles/Fonts/#2-\myi.#1”}%
-          \fi
-      }%
+\seq_new:N \l__nt_variants_seq
+\tl_new:N \l__nt_filename_tl
+\tl_new:N \l__nt_remote_url_tl
+\tl_new:N \l__nt_local_path_tl
+
+\cs_new_protected:Npn \nt_check_fonts:nnnnn #1 #2 #3 #4 #5
+{
+  % Split variants by commas
+  \seq_set_split:Nnn \l__nt_variants_seq { , } { #3 }
+
+  % Create target directory if it doesn't exist
+  \file_if_exist:nF { #5/DO_NOT_REMOVE_THIS_FILE.txt }
+  {
+    \sys_shell:n { mkdir~-p~#5 }
+  }
+
+  % Process each variant
+  \seq_map_inline:Nn \l__nt_variants_seq
+  {
+    \tl_set:Nn \l__nt_filename_tl { #2-##1.#1 }
+    \tl_set:Nn \l__nt_remote_url_tl { #4/#2/#2-##1.#1 }
+    \tl_set:Nn \l__nt_local_path_tl { #5/#2-##1.#1 }
+
+    % Check if file already exists
+    \file_if_exist:nTF { \l__nt_local_path_tl }
+    {
+      \iow_term:x { Font~' \l__nt_filename_tl '~already~exists. }
     }
+    {
+      \iow_term:x { Downloading~font~' \l__nt_filename_tl '~
+                    from~' \l__nt_remote_url_tl '~
+                    to~' \l__nt_local_path_tl '}
+
+      % Download the font
+      \nt_download_font:nn { \l__nt_remote_url_tl } { \l__nt_local_path_tl }
+    }
+  }
 }
+
+
+\tl_new:N \l_nt_cmd_output_tl
+
+\cs_new_protected:Npn \nt_download_font:nn #1 #2
+{
+  \bool_set_false:N \l_tmpa_bool
+
+  % Check if shell escape us unrestricted
+  \sys_if_shell_unrestricted:F
+    {
+      \msg_error:nn { ntfonts } { shell-escape-required }
+      \bool_set_true:N \l_tmpa_bool
+    }
+
+  % Truy curl
+  \bool_if:NF \l_tmpa_bool
+    {
+      \iow_term:x { Tyying:~'curl'... }
+      \sys_get_shell:nnN  { curl ~ --version ~ 2> ~ /dev/null }
+                          { \tl_trim_spaces:n }
+                          \l_nt_cmd_output_tl
+      \tl_if_blank:nF { \tl_use:N \l_nt_cmd_output_tl }
+        { % curl is available
+          \iow_term:x { Running: ~ curl ~ -L ~ -s ~ -o ~ #2 ~ #1... }
+          \sys_shell_now:x { curl ~ -L ~ -s ~ -o ~ #2 ~ #1 }
+          \bool_set_true:N \l_tmpa_bool
+        }
+    }
+
+  % try wget
+  \bool_if:NF \l_tmpa_bool
+    {
+      \iow_term:x { Trying: ~ 'wget'... }
+      \sys_get_shell:nnN  { wget ~ --version ~ 2> ~ /dev/null }
+                          { \tl_trim_spaces:n }
+                          \l_nt_cmd_output_tl
+      \tl_if_blank:nF { \tl_use:N \l_nt_cmd_output_tl }
+        { % wget is available
+          \iow_term:x { Running: ~ wget ~ -q ~ -O ~ #2 ~ #1... }
+          \sys_shell_now:x { wget ~ -q ~ -O ~ #2 ~ #1 }
+          \bool_set_true:N \l_tmpa_bool
+        }
+    }
+
+  % try python3
+  \bool_if:NF \l_tmpa_bool
+    {
+      \iow_term:x { Trying: ~ 'python3'... }
+      \sys_get_shell:nnNT  { python3 ~ --version ~ > ~ /dev/null ~ 2>&1 }
+                           { \tl_trim_spaces:n }
+                           \l_nt_cmd_output_tl
+      \tl_if_blank:nF { \tl_use:N \l_nt_cmd_output_tl }
+        { % python3 is available
+          \iow_term:x { Running: ~ python3 ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null ~ || ~ python ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null"... }
+          \sys_shell_now:x { python3 ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null ~ || ~ python ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null ~ || ~ echo ~ "ªython3: ~ No ~ download ~ tool ~ available" }
+          \bool_set_true:N \l_tmpa_bool
+        }
+    }
+
+  % try python
+  \bool_if:NF \l_tmpa_bool
+    {
+      \iow_term:x { Trying: ~ 'python'... }
+      \sys_get_shell:nnNT  { python ~ --version ~ > ~ /dev/null ~ 2>&1 }
+                           { \tl_trim_spaces:n }
+                           \l_nt_cmd_output_tl
+      \tl_if_blank:nF { \tl_use:N \l_nt_cmd_output_tl }
+        { % python is available
+          \iow_term:x { Running: ~ python ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null ~ || ~ python ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null"... }
+          \sys_shell_now:x { python3 ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null ~ || ~ python ~ -c ~ "import ~ urllib.request; ~ urllib.request.urlretrieve('#1', ~ '#2')" ~ 2>/dev/null ~ || ~ echo ~ "Python: ~ No ~ download ~ tool ~ available" }
+          \bool_set_true:N \l_tmpa_bool
+        }
+    }
+
+  % Try windows/Unix specific approaches
+ \bool_if:NF \l_tmpa_bool
+  {
+    \iow_term:x { Trying ~ a ~ platform ~ specific ~ strategy }
+    % Platform-specific fallbacks
+    \sys_if_platform_windows:T
+      {
+        % Windows - try PowerShell
+        \iow_term:x { Trying: ~ 'powershell' }
+        \sys_get_shell:nnNT  { powershell ~ /?" }
+                           { \tl_trim_spaces:n }
+                           \l_nt_cmd_output_tl
+      \tl_if_blank:nF { \tl_use:N \l_nt_cmd_output_tl }
+          { % powershell is available
+            \iow_term:x ~ { ~ powershell ~ -Command ~ "Invoke-WebRequest ~ -Uri ~ '\l__nt_remote_url_tl' ~ -OutFile ~ '#1'" ~ }
+            \sys_shell_now:x ~ { ~ powershell ~ -Command ~ "Invoke-WebRequest ~ -Uri ~ '\l__nt_remote_url_tl' ~ -OutFile ~ '#1'" ~ }
+            \bool_set_true:N \l_tmpa_bool
+          }
+      }
+  }
+
+}
+
+\ExplSyntaxOff
+
 
 
 % --------------------------------------------------------
@@ -723,9 +746,9 @@ end
 %% MANAGE DOCUMENT CLASSES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \options{/@nt/document/.cd,
-   docclass/.new choice={phd=phd, phdprop=phd, phdplan=phd, 
-                         msc=msc, mscplan=msc, 
-                         bsc=bsc, 
+   docclass/.new choice={phd=phd, phdprop=phd, phdplan=phd,
+                         msc=msc, mscplan=msc,
+                         bsc=bsc,
                          plain=plain},
    docmain/.new list={phd, msc, bsc, plain},
 }
@@ -1669,21 +1692,21 @@ end
 
 \ifoptionequal{/novathesis/print/webography}{}{%
   \printorder(backmatter):={
-    appendices;      % Print appendices; if any!
-    annexes;         % Print annexes; if any!
     bib;             % Print the bibliography.  Change to
      %    “bib[title=⟨title⟩]” to redefine the title!
     alllistof;       % Print all the listof defined in “6_list_of.tex”
     myprintglossaries; % Print the Glossary, Acronyms, Symbols, etc…
+    appendices;      % Print appendices; if any!
+    annexes;         % Print annexes; if any!
   }%
 }{%
   \printorder(backmatter):={
-    appendices; % Print appendices, if any!
-    annexes; % Print annexes, if any!
     \printbibliography[nottype=online]; % Print the bibliography.
     \printbibliography[title=\option{/novathesis/print/webography},type=online]; % Print the bibliography.
     alllistof;       % Print all the listof defined in “6_list_of.tex”
     myprintglossaries; % Print the Glossary, Acronyms, Symbols, etc…
+    appendices; % Print appendices, if any!
+    annexes; % Print annexes, if any!
   }%
 }
 % \ifoptionequal{/novathesis/print/webography}{}{%
@@ -1916,7 +1939,7 @@ end
 %   Please open and edit the appropriate
 %       configuration file “0-Config/6_list_of.tex”
 %============================================================
-\AtEndPreamble{ 
+\AtEndPreamble{
 % is only loaded after school's configuration
 % can be changhed with "\ntsetup{print/other}"
   \makeatletter
@@ -2200,7 +2223,7 @@ end
    ,{image}%
   ){%
     \begin{tikzpicture}[remember picture, overlay]%
-      \node[anchor=center] at (current page.center) 
+      \node[anchor=center] at (current page.center)
               {\includegraphics[width=\paperwidth,height=\paperheight]{\match}};
     \end{tikzpicture}%
   }{}%
@@ -2244,7 +2267,7 @@ end
     \NTRunHook{cover/#1/grid/post}%
   }{}%
   \begin{tikzpicture}[remember picture, overlay]%
-    \node[anchor=north west,inner sep=0,xshift=\@MRGN@left, yshift=-\@MRGN@top] 
+    \node[anchor=north west,inner sep=0,xshift=\@MRGN@left, yshift=-\@MRGN@top]
           at (current page.north west) {%
       \begin{minipage}[t][\covertextheight]%
                       [t]{\covertextwidth}%
@@ -2780,147 +2803,14 @@ end
 \newcommand*{\ntsetlayout}{%
     % \synctex=1% Use synctex
     \brokenpenalty=10000%
-    \settypeoutlayoutunit{mm}%
-    \setulmarginsandblock%
-    {\themargin(\option{/novathesis/media},top)}%
-    {\themargin(\option{/novathesis/media},bottom)}%
-    {*}%
-    \setlrmarginsandblock%
-    {\themargin(\option{/novathesis/media},left)}%
-    {\themargin(\option{/novathesis/media},right)}%
-    {*}%
-    \checkandfixthelayout%
+    \newgeometry{
+        lmargin=\expanded{\themargin(\option{/novathesis/media},left)},
+        rmargin=\expanded{\themargin(\option{/novathesis/media},right)},
+        tmargin=\expanded{\themargin(\option{/novathesis/media},top)},
+        bmargin=\expanded{\themargin(\option{/novathesis/media},bottom)},
+    }%
     \ifoptionequal{/novathesis/media}{paper}{\openright}{}%
 }
-
-\newcommand*{\setpdftexpagesize}{%
-  \@ifundefined{pdfpageheight}{}{\pdfpageheight=\the\stockheight}
-  \@ifundefined{pdfpagewidth}{}{\pdfpagewidth=\the\stockwidth}
-  \@ifundefined{pageheight}{}{\pageheight=\the\stockheight}
-  \@ifundefined{pagewidth}{}{\pagewidth=\the\stockwidth}
-  \@ifundefined{pdfvorigin}{}{\ifdim\pdfvorigin=0pt\pdfvorigin=1in\fi}
-  \@ifundefined{pdfhorigin}{}{\ifdim\pdfhorigin=0pt\pdfhorigin=1in\fi}
-}
-
-\DeclareRobustCommand\nt@changelayout{%
-  \setlength{\@colht}{\textheight}
-  \setlength{\@colroom}{\textheight}%
-  \setlength{\vsize}{\textheight}
-  \setlength{\columnwidth}{\textwidth}%
-  \if@twocolumn%
-    \advance\columnwidth-\columnsep
-    \divide\columnwidth\tw@%
-    \@firstcolumntrue%
-  \fi%
-  \setlength{\hsize}{\columnwidth}%
-  \setlength{\linewidth}{\hsize}%
-}%
-
-\newcommand\nt@savelength[2]{%
-  \csappto{nt@restoregeometry@#1}{%
-    \expandafter\csname
-    #2\endcsname\expandafter=\expandafter\the\csname #2\endcsname\relax
-  }%
-}
-\newcommand\nt@saveboolean[2]{%
-  \csname if#2\endcsname
-  \csappto{nt@restoregeometry@#1}{%
-          \expandafter\noexpand\csname #1true\endcsname}%
-  \else
-  \csappto{nt@restoregeometry@#1\endcsname}{%
-          \expandafter\noexpand\csname #1false\endcsname}%
-  \fi
-}%
-
-\newcommand\nt@restoregeometry{%
-  \csuse{nt@restoregeometryB@\the\c@pdfnewlytlevel}%
-  \addtocounter{pdfnewlytlevel}{-1}%
-}
-
-\newcommand\nt@savegeometry{%
-  \addtocounter{pdfnewlytlevel}{1}%
-  \csgdef{nt@restoregeometryA@\the\c@pdfnewlytlevel}{}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{paperwidth}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{paperheight}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{textwidth}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{textheight}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{evensidemargin}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{oddsidemargin}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{topmargin}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{headheight}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{headsep}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{topskip}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{footskip}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{baselineskip}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{marginparwidth}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{marginparsep}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{columnsep}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{hoffset}%
-  \nt@savelength{\the\c@pdfnewlytlevel}{voffset}
-  \nt@saveboolean{\the\c@pdfnewlytlevel}{@twocolumn}%
-  \nt@saveboolean{\the\c@pdfnewlytlevel}{@twoside}%
-  \nt@saveboolean{\the\c@pdfnewlytlevel}{@mparswitch}%
-  \nt@saveboolean{\the\c@pdfnewlytlevel}{@reversemargin}%
-}
-
-\newcounter{pdfnewlytlevel}
-\RequirePackage{atbegshi}
-\newenvironment{newpdflayout}[3][]{%
-  % #1 = page height
-  % #2 = page width
-  % \typeout{textheight=\the\textheight}
-  % \typeout{textwidth=\the\textwidth}
-  % \AAAA
-  \nt@savegeometry%
-  \let\oldstockheight=\stockheight
-  \let\oldstockwidth=\stockwidth
-  \clearpage
-  \begingroup
-  \setstocksize{#2}{#3}
-  \settrimmedsize{#2}{#3}{*}
-  \paperwidth=\stockwidth
-  \paperheight=\stockheight
-  \setlrmarginsandblock%
-    {\themargin(\option{/novathesis/media},left)}%
-    {\themargin(\option{/novathesis/media},right)}%
-    {*}%
-  \setulmarginsandblock%
-    {\themargin(\option{/novathesis/media},top)}%
-    {\themargin(\option{/novathesis/media},bottom)}%
-    {*}%
-  #1%
-  \checkandfixthelayout[fixed]
-  \setpdftexpagesize
-  % From geometry
-  % \typeout{textheight=\the\textheight}
-  % \typeout{textwidth=\the\textwidth}
-  % \BBBB
-  \nt@changelayout%
-}{%
-  \clearpage%
-  \endgroup%
-  \nt@restoregeometry
-  % \setstocksize{\oldstockheight}{\oldstockwidth}
-  % \settrimmedsize{\oldstockheight}{\oldstockwidth}{*}
-  % \paperwidth=\stockwidth
-  % \paperheight=\stockheight
-  % \setlrmarginsandblock%
-  %   {\themargin(\option{/novathesis/media},left)}%
-  %   {\themargin(\option{/novathesis/media},right)}%
-  %   {*}%
-  % \setulmarginsandblock%
-  %   {\themargin(\option{/novathesis/media},top)}%
-  %   {\themargin(\option{/novathesis/media},bottom)}%
-  %   {*}%
-  \checkandfixthelayout[fixed]
-  \setpdftexpagesize
-  \nt@changelayout
-  \clearpage%
-  \addtocounter{page}{-1}%
-  ~\AtBeginShipoutDiscard
-  \clearpage
-}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Printing chapters and similars
