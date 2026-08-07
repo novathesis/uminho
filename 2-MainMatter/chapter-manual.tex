@@ -1,0 +1,1399 @@
+%!TEX root = ../template.tex
+
+%% ----------------------------------------------------------------------------
+%%  NOVATHESIS — 2-MainMatter/chapter-manual.tex
+%% ----------------------------------------------------------------------------
+%%
+%% Version 8.0.2 (2026-08-07)
+%% Copyright (C) 2004-26 by João M. Lourenço <joao.lourenco@fct.unl.pt>
+%%
+%% User's manual chapter: complete guide to configuring and using the
+%% NOVAthesis template.
+%%
+%% ----------------------------------------------------------------------------
+
+\typeout{NT FILE 2-MainMatter/chapter-manual.tex}%
+
+\chapter{NOVAthesis Template \emph{User's Manual}}
+\label{cha:users_manual}
+
+\glsresetall
+
+
+%%=======================================================================
+\section{Introduction}
+\label{sec:intro_manual}
+%%=======================================================================
+
+This chapter is a complete guide to the \novathesis{} template.  It covers
+Everything from the first-time setup to the fine-tuning of covers, fonts,
+citation styles, and the document workflow.  All user customization flows
+through the files inside the \ntindex[configuration!0-config/]{\latexinline{0-Config/}} folder — the rest of the
+project tree is never edited directly.
+
+For a reference to the \ntindex[building!]{build system} (\latexinline{make}
+and the command-line overrides), see Chapter~\ref{app:build}.  For a guide to
+the cover page system, see Chapter~\ref{app:covers}.
+
+
+%%=======================================================================
+\section{Getting Started}
+\label{sec:getting_started_manual}
+%%=======================================================================
+
+%%-----------------------------------------------------------------------
+\subsection{Local \hologo{LaTeX} Installation}
+\label{sub:local_install}
+%%-----------------------------------------------------------------------
+
+\novathesis{} requires a \emph{full} \hologo{LaTeX} installation.  The two
+major distributions are:
+
+\begin{description}
+  \item[\hologo{TeXLive}] The reference distribution maintained by \hologo{LaTeX} developers.
+    The full scheme occupies around 5\,GB but includes every package you will
+    ever need.  Strongly recommended unless disk space is very tight.
+    Download from \url{https://www.tug.org/texlive/}.
+
+  \item[\hologo{MiKTeX}] Installs a minimal base and downloads missing packages on the
+    fly.  A good choice when disk space is limited.  Packages installed on
+    the fly may occasionally fail, so keep the installation up to date.
+    Download from \url{https://miktex.org/}.
+\end{description}
+
+After installation, update all packages via the \emph{\hologo{TeXLive} Manager} or
+the \emph{\hologo{MiKTeX} Console} before compiling the template for the first time.
+
+\paragraph{Recommended engine.}  \ntindex[fonts!]{LuaLaTeX} is the recommended engine for most
+schools because it handles Unicode fonts natively.  \ntindex[fonts!]{XeLaTeX} is a close
+alternative.  \hologo{pdfLaTeX} works but cannot load OpenType/TrueType fonts.
+
+\paragraph{School-specific fonts.}  Some Schools or font-styles require fonts not available in \hologo{LaTeX}.  In normal conditions, they will be downloaded automatically.  However, if they are not, you may download the necessary fonts from \url{https://github.com/joaomlourenco/novathesis-extras/tree/main/Fonts}, unzip (if necessary), and copy the \verb!*.ttf! files to \verb!NOVAthesisFiles/FontStyles/Fonts/!.
+
+\begin{warningbox}[title={Security: compiling runs external programs (\texttt{-\/-shell-escape})}]
+  \label{box:shell-escape-security}
+  \novathesis{} compiles with \texttt{-{}-shell-escape} \emph{enabled},
+  because several features run external programs during the build:
+  \texttt{minted} calls Pygments to highlight source code, and selecting a
+  bundled proprietary font (Calibri, Arial, \ldots) downloads it over the
+  network.  (Glossaries no longer need shell-escape: since 8.0 they are built
+  by \texttt{bib2gls}, which \texttt{latexmk} runs directly.)  With shell-escape, \textbf{compiling a document can run commands
+  on your computer with your own user privileges} — there is no sandbox.
+
+  Building the \emph{official} template with \emph{your own} content is safe.
+  But you should only compile \texttt{.tex} files, school configurations, and
+  font styles that you \emph{trust} — treat a thesis project received from
+  someone else the same way you would review any script before running it.
+\end{warningbox}
+
+
+%%-----------------------------------------------------------------------
+\subsection{Downloading the Template}
+\label{sub:download}
+%%-----------------------------------------------------------------------
+
+Clone the GitHub repository (recommended — you get all update history):
+\begin{bashcode}
+git clone --depth=1 https://github.com/joaomlourenco/novathesis.git
+\end{bashcode}
+
+Or download the latest ZIP directly:
+\begin{bashcode}
+# Click “Code > Download ZIP” on https://github.com/joaomlourenco/novathesis
+\end{bashcode}
+
+The top-level folder is your working directory.  Rename it to anything
+you like.  Open \verb!template.tex! in your editor and compile it — you
+should get a \gls{PDF} immediately with the default settings (\gls{FCT}
+\gls{phd} in English).
+
+%%-----------------------------------------------------------------------
+\subsection{Overleaf}
+\label{sub:overleaf}
+%%-----------------------------------------------------------------------
+
+\Overleaf{} users can import the template directly from the GitHub link.
+Once imported:
+
+\begin{enumerate}
+  \item Set the \emph{Compiler} to \textbf{\hologo{LuaLaTeX}} (Menu → Compiler).
+  \item Set the \emph{Main document} to \verb!template.tex!.
+  \item Set the \emph{Bibliography tool} to \textbf{\ntindex[bibliography!]{Biber}}
+    (Menu → Bibliography).
+  \item Press \emph{Recompile}.
+\end{enumerate}
+
+On \Overleaf{} you cannot run \ntindex[building!make]{\latexinline{make}};
+all customization must be done by editing the \ntindex[configuration!0-config/]{\latexinline{0-Config/}} files
+directly (see Section~\ref{sec:project_structure}).
+
+
+%%=======================================================================
+\section{Project Structure}
+\label{sec:project_structure}
+%%=======================================================================
+
+Table~\ref{tab:project_structure} summarises the folders and top-level
+files in the project.  Items marked \textbf{(edit)} are intended for user
+customization; items marked \textbf{(do not edit)} are part of the template
+engine.
+
+
+\begin{table}[htb]
+  \caption{Project structure and access guidelines.}
+  \label{tab:project_structure}
+  \centering\small
+  \begin{ShadedTabular}{lll}
+    \toprule
+    \thead{Path} & \thead{Purpose} & \thead{Access} \\
+    % \midrule
+    \verb!template.tex!         & Main document entry point           & do not edit \\
+    \verb!novathesis.cls!       & Document class                      & do not edit \\
+    \verb!0-Config/!            & All user configuration              & \textbf{edit} \\
+    \verb!1-FrontMatter/!       & Abstracts, glossaries, front pages  & \textbf{edit} \\
+    \verb!2-MainMatter/!        & Thesis chapters                     & \textbf{edit} \\
+    \verb!3-BackMatter/!        & Appendices and annexes              & \textbf{edit} \\
+    \verb!4-Bibliography/!      & \texttt{.bib} database files        & \textbf{edit} \\
+    \verb!5-Figures/!           & Images                              & \textbf{edit} \\
+    \verb!NOVAthesisFiles/!     & Template internals (styles, schools, strings) & do not edit \\
+    \verb!Scripts/!             & Utility scripts                     & do not edit \\
+    \verb!.Build/!              & Maintainer build tools (\texttt{nt-variant.sh}) & do not edit \\
+    \bottomrule
+  \end{ShadedTabular}
+\end{table}
+
+%%-----------------------------------------------------------------------
+\subsection{The \texttt{0-Config/} Files}
+\label{sub:config_files}
+%%-----------------------------------------------------------------------
+
+All customization lives in \verb!0-Config/!.
+Table~\ref{tab:config_files} describes each file's purpose.
+
+\begin{table}[htb]
+  \caption{Configuration files in \texttt{0-Config/}.}
+  \label{tab:config_files}
+  \centering\small
+  \begin{ShadedTabular}{ll}
+    \toprule
+    \textbf{File} & \textbf{Purpose} \\
+    % \midrule
+    \verb!1_novathesis.tex! & Document options (\texttt{\textbackslash ntsetup\{...\}}) \\
+    \verb!2_biblatex.tex!   & Bibliography/biblatex configuration \\
+    \verb!3_cover.tex!      & Cover metadata (title, author, advisers, committee) \\
+    \verb!4_files.tex!      & List of content files to include \\
+    \verb!5_packages.tex!   & User-added packages and custom macros \\
+    \verb!9_*.tex!          & School-specific overrides (department, degree names) \\
+    \bottomrule
+  \end{ShadedTabular}
+\end{table}
+
+The \emph{active} setting for any option is the \emph{uncommented} line;
+commented-out lines show available values as documentation:
+\begin{latexcode}
+% \ntsetup{doctype=msc}    % commented = not active
+\ntsetup{school=nova/fct}  % uncommented = active
+\end{latexcode}
+
+
+%%=======================================================================
+\section{Configuring the Document (\texttt{1\_novathesis.tex})}
+\label{sec:config_novathesis}
+%%=======================================================================
+
+%%-----------------------------------------------------------------------
+\subsection{Essential Options}
+\label{sub:essential_options}
+%%-----------------------------------------------------------------------
+
+\begin{description}
+  \item[\texttt{doctype}] The type of document being written.
+    Default: \texttt{phd}.
+\begin{latexcode}
+\ntsetup{doctype=phd}      % PhD thesis
+\ntsetup{doctype=phdplan}  % PhD thesis plan
+\ntsetup{doctype=phdprop}  % PhD thesis proposal
+\ntsetup{doctype=msc}      % MSc dissertation
+\ntsetup{doctype=mscplan}  % MSc dissertation plan
+\ntsetup{doctype=bsc}      % BSc report
+\ntsetup{doctype=plain}    % Other report
+\end{latexcode}
+
+    The \texttt{*plan} and \texttt{*prop} document types produce a
+    \emph{simplified} front matter: only the abstracts and the AI disclosure
+    statement are included.  Pages such as the dedication, acknowledgements,
+    quote, and evaluation committee are suppressed regardless of the
+    \texttt{docstatus} setting.
+
+  \item[\texttt{school}] The school identifier.  This selects the
+    institutionally-compliant cover layout.  Default: \texttt{nova/fct}.
+\begin{latexcode}
+\ntsetup{school=nova/fct}      % NOVA FCT (default)
+\ntsetup{school=nova/fcsh}     % NOVA FCSH
+\ntsetup{school=nova/itqb/green}
+\ntsetup{school=ulisboa/ist}
+\ntsetup{school=uminho/eeng}
+% ... see 1_novathesis.tex for the full list
+\end{latexcode}
+
+  \item[\texttt{docstatus}] The workflow stage.  Controls which front-matter
+    pages are included.  Default: \latexinline{working}.  See
+    Section~\ref{sec:status_workflow} for the full implications of each value.
+
+\begin{latexcode}
+\ntsetup{docstatus=working}      % drafting (default)
+\ntsetup{docstatus=provisional}  % submitted; no committee yet
+\ntsetup{docstatus=final}        % post-examination; committee, book spine, PDF/A-2b
+\end{latexcode}
+
+  \item[\texttt{pdfa}] \gls{PDFA} archival output toggle.  Default: \texttt{true}.
+    In normal usage, \gls{PDFA}-2b output is produced automatically in
+    \texttt{docstatus=final}; set this option to \texttt{false} to opt out.
+    See Section~\ref{sub:pdfa} for details.
+\begin{latexcode}
+\ntsetup{pdfa=true}   % default behavior
+\ntsetup{pdfa=false}  % disable PDF/A output
+\end{latexcode}
+
+  \item[\texttt{lang}] Main language of the document body (two- or
+    three-letter language code).  Default: \texttt{en}.
+\begin{latexcode}
+\ntsetup{lang=en}   % English (default)
+\ntsetup{lang=pt}   % Portuguese
+\ntsetup{lang=de}   % German
+% cat, cz, dk, es, fr, gr, it, nl, pl, sk, uk also available
+\end{latexcode}
+
+  \item[\texttt{media}] Target output medium.  Default: \texttt{screen}.
+\begin{latexcode}
+\ntsetup{media=screen}  % equal margins, colored links (default)
+\ntsetup{media=paper}   % binding margins, black links
+\end{latexcode}
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Appearance Options}
+\label{sub:appearance_options}
+%%-----------------------------------------------------------------------
+
+\begin{description}
+  \item[\texttt{style/font}] Body font family.  Default: \texttt{newpx}
+    (Palatino-like).  Options marked with~(*) require \hologo{LuaLaTeX} or \hologo{XeLaTeX}.
+\begin{latexcode}
+\ntsetup{style/font=newpx}        % Palatino-like (default)
+\ntsetup{style/font=libertine}    % Linux Libertine
+\ntsetup{style/font=opensans}     %
+\ntsetup{style/font=arial}        % (*) Arial
+\ntsetup{style/font=calibri}      % (*) Calibri
+\ntsetup{style/font=newsgott}     % (*) NewsGotT (UMINHO)
+% Any standard LaTeX font package name is also accepted.
+\end{latexcode}
+
+    For system fonts (\hologo{LuaLaTeX}/\hologo{XeLaTeX} only), provide the font name and
+    attributes explicitly:
+\begin{latexcode}
+\ntsetup{style/font=Times New Roman}
+\ntsetup{style/font/attributes={
+  Extension       = .ttf,
+  Ligatures       = TeX,
+  UprightFont     = *,
+  ItalicFont      = * Italic,
+  BoldFont        = * Bold,
+  BoldItalicFont  = * Bold Italic,
+}}
+\end{latexcode}
+
+  \item[\texttt{style/chapter}] Chapter heading style.  Default: \texttt{bar}.
+\begin{latexcode}
+\ntsetup{style/chapter=bar}          % (default)
+\ntsetup{style/chapter=bar-compact}  % less vertical space
+\ntsetup{style/chapter=elegant}      % classical
+\ntsetup{style/chapter=bluebox}
+\ntsetup{style/chapter=compact}      % minimal vertical space
+\ntsetup{style/chapter=ist}          % ULISBOA-IST
+\ntsetup{style/chapter=fmv}          % ULISBOA-FMV
+\end{latexcode}
+
+  \item[\texttt{color/links}] Color of hyperlinks in \texttt{screen} media.
+    Default: a dark blue.  Any color name from the
+    \texttt{xcolor} package works.
+\begin{latexcode}
+\ntsetup{color/links=SteelBlue}
+\ntsetup{color/links=black}   % effectively disables colored links
+\end{latexcode}
+
+  \item[\texttt{style/url}] URL font style.
+\begin{latexcode}
+\ntsetup{style/url=same}  % use main body font for URLs
+\end{latexcode}
+
+  \item[\texttt{numbering/floats}] Float (figure/table) numbering scheme.
+    Default: \texttt{chapter} (\emph{chapter.number}).
+\begin{latexcode}
+\ntsetup{numbering/floats=chapter}     % 1.1, 1.2, 2.1 … (default)
+\ntsetup{numbering/floats=sequential}  % 1, 2, 3 …
+\end{latexcode}
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Print Control Options}
+\label{sub:print_options}
+%%-----------------------------------------------------------------------
+
+These options control which supplementary pages are included in the
+generated PDF.  Many have defaults that vary with \texttt{school} and \texttt{docstatus}:
+
+\begin{description}
+  \item[\texttt{print/frontpage}] Print a front page (second cover).
+    Default: \texttt{false}.
+\begin{latexcode}
+\ntsetup{print/frontpage=true}
+\end{latexcode}
+
+  \item[\texttt{print/committee}] Print the evaluation committee.
+    Default: \texttt{false} for \texttt{working}/\texttt{provisional};
+    \texttt{true} for \texttt{final}.
+\begin{latexcode}
+\ntsetup{print/committee=true}   % force on
+\ntsetup{print/committee=false}  % force off
+\end{latexcode}
+
+  \item[\texttt{print/statement}] Print the declaration/integrity statement.
+    Default: \texttt{false}.
+\begin{latexcode}
+\ntsetup{print/statement=true}
+\end{latexcode}
+
+  \item[\texttt{print/copyright}] Print the copyright notice.
+    Default: \texttt{true}.
+\begin{latexcode}
+\ntsetup{print/copyright=false}
+\end{latexcode}
+
+  \item[\texttt{spine/layout}] Print the book spine.
+    Default: \texttt{false} for \texttt{working} and \texttt{provisional};
+    \texttt{trim} (printed) for \texttt{final}.
+\begin{latexcode}
+\ntsetup{spine/layout=false}  % suppress spine even in final
+\ntsetup{spine/layout=trim}   % force spine even in provisional
+\end{latexcode}
+
+  \item[\texttt{print/index}] Print a word index at the end.
+    Default: \texttt{false}.
+\begin{latexcode}
+\ntsetup{print/index=true}
+\end{latexcode}
+
+  \item[\texttt{print/timestamp}] Print a generation timestamp on the cover.
+    Default: \texttt{true} for \texttt{working}; \texttt{false} otherwise.
+\begin{latexcode}
+\ntsetup{print/timestamp=false}
+\end{latexcode}
+
+  \item[\texttt{print/webography}] Title for a separate bibliography section
+    that collects only \texttt{@online} entries.  When empty (default), all
+    references are printed together.
+\begin{latexcode}
+\ntsetup{print/webography=Webography}
+\end{latexcode}
+
+  \item[\texttt{print/aidisclosure}] Print an AI use disclosure statement.
+    Default: \texttt{aidisclose} (uses \verb!1-FrontMatter/7-aidisclose.tex!
+    with the \texttt{aidisclose} package).
+\begin{latexcode}
+\ntsetup{print/aidisclosure=false}            % suppress
+\ntsetup{print/aidisclosure=aidisclose}       % default package
+\ntsetup{print/aidisclosure=aidisclosure.tex} % custom file
+\end{latexcode}
+
+  \item[\texttt{print/otherlists}] Where the ``other lists'' (list of
+    figures, tables, listings, \ldots) are printed.
+    Default: \texttt{frontmatter}.
+\begin{latexcode}
+\ntsetup{print/otherlists=frontmatter}  % after the ToC (default)
+\ntsetup{print/otherlists=backmatter}   % before the appendices
+\end{latexcode}
+
+  \item[\texttt{print/glossaries}] Where the glossaries (glossary, acronyms,
+    symbols, chemical symbols) are printed, or \texttt{false} to suppress
+    them.  Default: \texttt{frontmatter}.
+\begin{latexcode}
+\ntsetup{print/glossaries=frontmatter}  % default
+\ntsetup{print/glossaries=backmatter}
+\ntsetup{print/glossaries=false}        % do not print
+\end{latexcode}
+
+  \item[\texttt{abstract/title}] Print the work title with each abstract,
+    before or after the abstract text.  Default: \texttt{none}.
+    The alignment of the title block is set with
+    \texttt{abstract/title/align} (\texttt{left}, \texttt{center}, or
+    \texttt{right}; default: \texttt{center}).
+\begin{latexcode}
+\ntsetup{abstract/title=none}    % default
+\ntsetup{abstract/title=before}  % title above the abstract
+\ntsetup{abstract/title=after}   % title below the abstract
+\ntsetup{abstract/title/align=left}
+\end{latexcode}
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Language Options}
+\label{sub:language_options}
+%%-----------------------------------------------------------------------
+
+\begin{description}
+  \item[\texttt{abstractorder}]\ntindex[configuration!abstractorder]{} Ordered list of languages for the abstract
+    sequence.  Default: \texttt{\{lang, en\}} when \texttt{lang}$\neq$\texttt{en};
+    otherwise \texttt{\{en, pt\}}.
+\begin{latexcode}
+\ntsetup{abstractorder={en,pt}}
+\ntsetup{abstractorder={en,pt,uk,gr}}   % add Ukrainian & Greek
+\end{latexcode}
+
+  \item[\texttt{lang/cover}]\ntindex[configuration!lang/cover]{} Language for the cover and front page.
+    Default: same as \texttt{lang}.
+\begin{latexcode}
+\ntsetup{lang/cover=pt}   % Portuguese cover even if body is English
+\end{latexcode}
+
+  \item[\texttt{lang/copyright}]\ntindex[configuration!lang/copyright]{} Language for the copyright message.
+    Default: same as \texttt{lang}.
+
+  \item[\texttt{lang/extra}]\ntindex[configuration!lang/extra]{} Additional languages loaded in the document
+    (besides the main language and abstract languages).
+\begin{latexcode}
+\ntsetup{lang/extra={de,es}}
+\end{latexcode}
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Sustainable Development Goals (SDGs)}
+\label{sub:sdgs}
+%%-----------------------------------------------------------------------
+
+NOVAthesis can print the United Nation's \ntindex[configuration!print/sdgs]{SDG} icons at the bottom of the abstract page(s).  All three options
+below should be set together:
+\begin{latexcode}
+\ntsetup{print/sdgs/list={3,7,13}}    % SDG numbers to print
+\ntsetup{print/sdgs/type=inverted}    % inverted | normal | mono
+\ntsetup{print/sdgs/size=2cm}         % icon size
+\ntsetup{print/sdgs/hspace=5mm}       % horizontal gap between icons
+\ntsetup{print/sdgs/vspace=4mm}       % vertical gap below icons
+\end{latexcode}
+
+The \texttt{type} option selects the icon variant: \texttt{inverted} (colour on white background), \texttt{normal} (colour on coloured background), or \texttt{mono} (monochrome on white background).  Table~\ref{tab:sdgs}\footnote{Table~\ref{tab:sdgs} is intentionally in a page with differente dimensions (corresponding to a rotated page) to illustrate the funcitonality of the \texttt{stocksize} package.} lists all 17 SDGs with their icon (\texttt{inverted} variant), title, and goal description.
+
+\newstocksize{layoutsize={297mm,210mm},keepmargins}
+\begin{center}
+{\small\rowcolors{2}{rowgray}{white}%
+\renewcommand{\arraystretch}{1.4}%
+\begin{longtable}{@{}cp{\dimexpr0.32\linewidth}p{\dimexpr0.52\linewidth}@{}}
+  \caption{The 17 UN Sustainable Development Goals (SDGs) — \texttt{inverted} icon variant.}
+  \label{tab:sdgs}\\
+  \rowcolor{headgray}
+  \textbf{Icon} & \textbf{Title} & \textbf{Goal} \\\endfirsthead
+  \rowcolor{headgray}
+  \textbf{Icon} & \textbf{Title} & \textbf{Goal} \\\endhead
+  %
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/1-i}  & \textbf{1 — No Poverty}                             & End poverty in all its forms everywhere. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/2-i}  & \textbf{2 — Zero Hunger}                            & End hunger, achieve food security, improve nutrition, and promote sustainable agriculture. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/3-i}  & \textbf{3 — Good Health and Well-being}              & Ensure healthy lives and promote well-being for all at all ages. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/4-i}  & \textbf{4 — Quality Education}                      & Ensure inclusive and equitable quality education and promote lifelong learning opportunities. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/5-i}  & \textbf{5 — Gender Equality}                        & Achieve gender equality and empower all women and girls. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/6-i}  & \textbf{6 — Clean Water and Sanitation}              & Ensure availability and sustainable management of water and sanitation for all. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/7-i}  & \textbf{7 — Affordable and Clean Energy}             & Ensure access to affordable, reliable, sustainable, and modern energy for all. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/8-i}  & \textbf{8 — Decent Work and Economic Growth}         & Promote sustained, inclusive, and sustainable economic growth, full employment, and decent work. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/9-i}  & \textbf{9 — Industry, Innovation and Infrastructure} & Build resilient infrastructure, promote inclusive and sustainable industrialization, and foster innovation. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/10-i} & \textbf{10 — Reduced Inequalities}                  & Reduce inequality within and among countries. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/11-i} & \textbf{11 — Sustainable Cities and Communities}     & Make cities and human settlements inclusive, safe, resilient, and sustainable. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/12-i} & \textbf{12 — Responsible Consumption and Production} & Ensure sustainable consumption and production patterns. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/13-i} & \textbf{13 — Climate Action}                        & Take urgent action to combat climate change and its impacts. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/14-i} & \textbf{14 — Life Below Water}                      & Conserve and sustainably use the oceans, seas, and marine resources. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/15-i} & \textbf{15 — Life on Land}                          & Protect, restore, and promote sustainable use of terrestrial ecosystems and halt biodiversity loss. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/16-i} & \textbf{16 — Peace, Justice and Strong Institutions} & Promote peaceful and inclusive societies, provide access to justice, and build accountable institutions. \\
+  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/17-i} & \textbf{17 — Partnerships for the Goals}            & Strengthen the means of implementation and revitalize the global partnership for sustainable development. \\
+\end{longtable}}
+\end{center}
+\restorestocksize
+
+%%-----------------------------------------------------------------------
+\subsection{Indexing}
+\label{sub:indexing_manual}
+%%-----------------------------------------------------------------------
+
+\novathesis{} provides built-in support for generating a word index at the
+end of the document.
+
+\paragraph{Enabling the index.} To generate and print the index, enable the
+\texttt{print/index} toggle in \verb!0-Config/1_novathesis.tex!:
+\begin{latexcode}
+\ntsetup{print/index=true}
+\end{latexcode}
+When active, the template automatically initializes the indexing engine and
+adds an “Index” (or “Índice Remissivo”) section to the back matter.
+
+\paragraph{Indexing words with \texttt{\textbackslash ntindex}.} While the standard
+\hologo{LaTeX} \latexinline{\index{word}} command only adds an entry to the index file
+(printing nothing in the text), the \novathesis{} \latexinline{\ntindex} command is
+more convenient:
+\begin{latexcode}
+This is a \ntindex{recommendation} for users.
+\end{latexcode}
+The above code prints “recommendation” in the document \textbf{and} adds it
+to the index.
+
+\paragraph{Custom keys and sub-entries.} You can use an optional argument
+to specify a different index key or create sub-entries:
+\begin{latexcode}
+\ntindex[template!]{Version} % Prints “Version”, indexes under Template > Version
+\ntindex[project web page]{GitHub} % Prints “GitHub”, indexes under Project web page
+\end{latexcode}
+
+\paragraph{Debugging the index.} If you want to see exactly which words have
+been indexed while proofreading, enable the index debug mode:
+\begin{latexcode}
+\ntsetup{debug={index}}
+\end{latexcode}
+This will highlight every word indexed with \latexinline{\ntindex} with a small
+label in the margin.
+
+%%-----------------------------------------------------------------------
+\subsection{Glossary and Miscellaneous Options}
+\label{sub:misc_options}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+% Hyperlink color for glossary entries (default: black)
+\ntsetup{color/glossaries/gls=SteelBlue}
+
+% Show back-references in glossary entries (default: true)
+\ntsetup{glossaries/list/reverse=false}
+
+% Glossary column widths
+\ntsetup{glossaries/layout={>{\raggedright}p{0.2\textwidth}X}}
+
+% Include the Table of Contents as an entry in itself (default: true)
+\ntsetup{tocintoc=false}
+
+% Book spine width (default: 1cm)
+\ntsetup{spine/width=2cm}
+
+% Debug helpers (print grid and bounding boxes on cover/spine)
+\ntsetup{debug={cover,spine}}
+\end{latexcode}
+
+
+%%=======================================================================
+\section{Cover Metadata (\texttt{3\_cover.tex})}
+\label{sec:cover_metadata}
+%%=======================================================================
+
+%%-----------------------------------------------------------------------
+\subsection{Title and Subtitle}
+\label{sub:title}
+%%-----------------------------------------------------------------------
+
+\verb!\nttitle! accepts an optional \emph{type} and a \emph{language}:
+\begin{latexcode}
+\nttitle(main,en){Full Thesis Title}
+\nttitle(main,pt){Título Completo da Tese}
+\nttitle(sub,en){Optional Subtitle}
+\nttitle(sub,pt){Subtítulo Opcional}
+% Variants for specific contexts (if needed):
+\nttitle(cover,en){Shorter Title for the Cover}
+\nttitle(abstract,en){Title Version for the Abstract}
+\nttitle(spine,en){Very Short Title}
+\end{latexcode}
+
+Use \verb!\\! to force line breaks anywhere in a title.
+
+%%-----------------------------------------------------------------------
+\subsection{Department, Degree, and Specialization}
+\label{sub:dept_degree}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntdepartment*(en){Name of the Department}
+\ntdepartment*(pt){Nome do Departamento}
+
+\ntdegreename*(en){Computer Science}
+\ntdegreename*(pt){Engenharia Informática}
+
+\ntspecialization*(en){Distributed Systems}    % omit if not applicable
+\ntspecialization*(pt){Sistemas Distribuídos}
+\end{latexcode}
+
+\textbf{NOVA FCT users:} open \verb!0-Config/9_nova_fct.tex! instead and
+uncomment the correct department/degree entries.
+
+%%-----------------------------------------------------------------------
+\subsection{Author}
+\label{sub:author}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntauthorname(m){John Very Longname Doe}{John Doe}
+% (m) = male, (f) = female
+% First argument: full name for the cover
+% Second argument: short name for other uses
+\end{latexcode}
+
+For the author's previous degree (printed on some covers):
+\begin{latexcode}
+\ntauthordegree(en){Master of Science in Computer Science}
+\ntauthordegree(pt){Mestrado em Engenharia Informática}
+\end{latexcode}
+
+%%-----------------------------------------------------------------------
+\subsection{Advisers}
+\label{sub:advisers}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+% Principal adviser
+\ntaddperson{adviser}(a,f){Mary Adviser, Full Professor, NOVA University Lisbon}
+% Co-advisers
+\ntaddperson{adviser}(c,m){John Co-Adviser, Associate Professor, IST}
+\end{latexcode}
+
+Valid role codes: \texttt{a}~(adviser), \texttt{c}/\texttt{co}~(co-adviser),
+\texttt{t}~(tutor).  Gender codes: \texttt{m}~(male), \texttt{f}~(female).
+
+%%-----------------------------------------------------------------------
+\subsection{Evaluation Committee}
+\label{sub:committee}
+%%-----------------------------------------------------------------------
+
+Committee members are only printed when \texttt{docstatus=final}
+(or when forced with \verb!\ntsetup{print/committee=true}!):
+\begin{latexcode}
+\ntaddperson{committee}(c,m){Chair Name, Full Professor, NOVA University Lisbon}
+\ntaddperson{committee}(r,m){Rapporteur, Associate Professor, University of Porto}
+\ntaddperson{committee}(m,f){Member Name, Assistant Professor, University X}
+\ntaddperson{committee}(g,f){Guest Member, Position, Institution}
+\end{latexcode}
+
+Valid roles: \texttt{c}~(chair), \texttt{r}~(rapporteur/arguente),
+\texttt{a}~(adviser, if in committee), \texttt{co}~(co-adviser, if in
+committee), \texttt{m}~(member), \texttt{g}~(guest).
+
+%%-----------------------------------------------------------------------
+\subsection{Dates and Sponsors}
+\label{sub:dates_sponsors}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntdate(submission){2025-09-30}   % YYYY-MM-DD preferred
+\ntdate(exam){2026-01-15}
+
+% Sponsors (logos or text, per language)
+\ntsponsors(1,logo,en){\includegraphics[height=1.5cm]{republica_portuguesa_CTES}}
+\ntsponsors(2,logo,en){\includegraphics[height=1.5cm]{FCT_MEC_logo_positive}}
+\end{latexcode}
+
+
+%%=======================================================================
+\section{Book Spine}
+\label{sec:spine}
+%%=======================================================================
+
+The \emph{book spine} is the narrow strip printed on the bound edge of
+the thesis, showing the year, title, author name, and school logo from
+top to bottom.  It is generated automatically in \texttt{final} mode and
+typeset as a separate page (rotated 90°) appended after the back cover.
+
+%%-----------------------------------------------------------------------
+\subsection{Enabling and Sizing}
+\label{sub:spine_basic}
+%%-----------------------------------------------------------------------
+
+\begin{description}
+  \item[\texttt{spine/layout}] Controls when the spine is printed.
+    Default: \texttt{false} for \texttt{working} and \texttt{provisional};
+    \texttt{trim} for \texttt{final}.
+\begin{latexcode}
+\ntsetup{spine/layout=false}  % suppress spine even in final
+\ntsetup{spine/layout=trim}   % force spine even in provisional/working
+\end{latexcode}
+
+  \item[\texttt{spine/width}] Thickness of the spine strip (= book spine
+    width).  Default: \texttt{1cm}.  Set this to match the actual
+    thickness of the printed and bound book.
+\begin{latexcode}
+\ntsetup{spine/width=2cm}
+\end{latexcode}
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Spine Title}
+\label{sub:spine_title}
+%%-----------------------------------------------------------------------
+
+When the full thesis title is too long for the spine, supply a shorter
+variant with \latexinline{\nttitle}:
+\begin{latexcode}
+\nttitle(spine,en){A Very Short Title}
+\nttitle(spine,pt){Um Título Muito Curto}
+\end{latexcode}
+If no \texttt{spine} variant is defined, the \texttt{cover} variant is
+used; if that is also absent, the \texttt{main} title is used.
+
+%%-----------------------------------------------------------------------
+\subsection{Customising the Spine with \texttt{\textbackslash SpineSetup}}
+\label{sub:spine_setup}
+%%-----------------------------------------------------------------------
+
+\latexinline{\SpineSetup} is the main command for customising the spine
+appearance.  It is typically called in the school \texttt{.clo} file, but
+users may call it in \verb!0-Config/3_cover.tex! or
+\verb!0-Config/5_packages.tex! to override or extend the school defaults.
+
+\begin{latexcode}
+\SpineSetup[<preamble code>]{<key=value list>}
+\end{latexcode}
+
+The optional \emph{preamble code} is executed first (useful for
+conditionals based on \latexinline{\ifmscdoc} / \latexinline{\ifphddoc}),
+followed by setting the key–value pairs listed in the mandatory argument.
+Multiple calls accumulate; later calls override earlier ones for the same
+key.
+
+%%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsubsection*{Global Appearance Keys}
+
+\begin{description}
+  \item[\texttt{bg/image}] File name of a full-spine background image
+    (without extension).
+  \item[\texttt{bg/image/angle}] Rotation angle of the background image.
+    Allowed values: \texttt{0}, \texttt{90}, \texttt{-90}/\texttt{270},
+    \texttt{180}.  Default: \texttt{0}.
+  \item[\texttt{bg/color}] Background colour of the whole spine strip.
+    Use \texttt{none} for transparent.  Default: \texttt{none}.
+  \item[\texttt{bg/opacity}] Opacity of the background image (\texttt{0}–\texttt{1}).
+    Default: \texttt{1}.
+  \item[\texttt{fg/color}] Default text colour for all boxes.
+    Default: \texttt{black}.
+  \item[\texttt{frame/color}] Colour of the outer frame drawn around the
+    spine strip.  Use \texttt{none} to suppress.  Default: \texttt{none}.
+  \item[\texttt{frame/width}] Width of the outer frame.  Default: \texttt{0pt}.
+  \item[\texttt{boxsep}] Gap inserted between adjacent content boxes.
+    Default: \texttt{5mm}.
+  \item[\texttt{margin/top}, \texttt{margin/bottom}] Margins between the
+    spine edge and the top/bottom of the content area.
+    Defaults: \texttt{1mm}.
+  \item[\texttt{margin/left}, \texttt{margin/right}] Margins at the left
+    and right (= top and bottom when the spine is rotated) of the content
+    area.  Defaults: \texttt{5mm} / \texttt{0mm}.
+\end{description}
+
+%%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsubsection*{Box Content and Order}
+
+The spine is divided into a sequence of named \emph{boxes}.  Four
+built-in boxes are available:
+
+\begin{center}\small
+\begin{ShadedTabular}{lll}
+  \toprule
+  \thead{Box name} & \thead{Content} & \thead{Default length} \\
+  \midrule
+  \texttt{date}   & Submission year                  & 1.5 cm \\
+  \texttt{title}  & Thesis title (spine variant)     & 16.6 cm \\
+  \texttt{author} & Author name (short form)         & 5.0 cm \\
+  \texttt{logo}   & School logo image                & 4.1 cm \\
+  \bottomrule
+\end{ShadedTabular}
+\end{center}
+
+\begin{description}
+  \item[\texttt{order}] Comma-separated list specifying which boxes to
+    print and in what order (left-to-right along the rotated spine, i.e.\
+    top-to-bottom when reading the bound book).
+    Default: \texttt{date,title,author,logo}.
+\begin{latexcode}
+\SpineSetup{order={date,title,author,logo}}
+\end{latexcode}
+
+  \item[\texttt{author}] Text placed in the \texttt{author} box.
+    Default: \latexinline{\GetDocAuthor(name,short)}.
+  \item[\texttt{title}] Text placed in the \texttt{title} box.
+    Default: \latexinline{\GetDocTitle(\@LANG@COVER,spine)}.
+  \item[\texttt{date}] Text placed in the \texttt{date} box.
+    Default: \latexinline{\GetDocDate(submission,year)}.
+\end{description}
+
+%%- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+\subsubsection*{Per-Box Keys}
+
+Each built-in box (\texttt{date}, \texttt{title}, \texttt{author},
+\texttt{logo}) accepts the following keys, prefixed with
+\texttt{box/<name>/}:
+
+\begin{description}
+  \item[\texttt{box/<name>/len}] Length (height when the spine is laid
+    horizontally) of the box.
+\begin{latexcode}
+\SpineSetup{box/logo/len=4.5cm}
+\end{latexcode}
+
+  \item[\texttt{box/<name>/extrasep}] Additional gap added \emph{after}
+    this box.  Default: \texttt{0mm}.
+  \item[\texttt{box/<name>/fontstyle}] Font-switching command applied to
+    the box content.  Default: \latexinline{\sffamily}.
+  \item[\texttt{box/<name>/bg/color}] Background colour of the box.
+    Default: \texttt{cyan} (override per school as needed).
+  \item[\texttt{box/<name>/bg/opacity}] Opacity of the box background.
+    Default: \texttt{1}.
+  \item[\texttt{box/<name>/bg/image}] Background image file for the box.
+\begin{latexcode}
+\SpineSetup{box/logo/bg/image={my-school-logo}}
+\end{latexcode}
+
+  \item[\texttt{box/<name>/bg/image/scale}] Scale factor (\texttt{0}–\texttt{1})
+    applied to the maximum box dimensions before fitting the image.
+    The default \texttt{1} fills the whole box; smaller values add
+    proportional padding around the image.
+\begin{latexcode}
+\SpineSetup{box/logo/bg/image/scale=0.75}  % logo at 75% of box size
+\end{latexcode}
+
+  \item[\texttt{box/<name>/bg/image/angle}] Rotation angle for the
+    per-box background image.  Default: \texttt{0}.
+    Doctype-specific overrides are also available:
+    \texttt{box/<name>/bg/image/angle/msc} and
+    \texttt{box/<name>/bg/image/angle/phd}.
+  \item[\texttt{box/<name>/fg/color}] Foreground (text) colour of the
+    box.  Default: \texttt{black}.
+\begin{latexcode}
+\SpineSetup{box/title/fg/color=white}
+\end{latexcode}
+
+  \item[\texttt{box/<name>/frame/color}] Frame colour drawn around the
+    box.  Use \texttt{none} to suppress.  Default: \texttt{none}.
+  \item[\texttt{box/<name>/frame/width}] Width of the box frame.
+    Default: \texttt{0pt}.
+  \item[\texttt{box/<name>/halign}] Horizontal alignment of box content:
+    \texttt{left}, \texttt{center}, \texttt{right}.
+    Default: \texttt{center}.
+  \item[\texttt{box/<name>/valign}] Vertical alignment of box content:
+    \texttt{top}, \texttt{center}, \texttt{bottom}.
+    Default: \texttt{center}.
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Example}
+\label{sub:spine_example}
+%%-----------------------------------------------------------------------
+
+The following example (similar to the \texttt{nova/fct} school) sets a
+full-spine background image, makes all text white, and places the school
+logo as a box background image — choosing different images for MSc and PhD:
+
+\begin{latexcode}
+\SpineSetup[%
+  \def\spnimg{my-spine-blue}%         % default image
+  \ifphddoc{\def\spnimg{my-spine-green}}{} % PhD override
+]{
+  bg/image                    = {\spnimg},
+  bg/image/angle              = {-90},
+  box/logo/bg/image           = {my-school-logo},
+  box/date/fg/color           = {white},
+  box/title/fg/color          = {white},
+  box/author/fg/color         = {white},
+}
+\end{latexcode}
+
+A minimal setup that only changes the logo box background:
+\begin{latexcode}
+\SpineSetup{
+  box/logo/bg/image = {my-school-logo},
+}
+\end{latexcode}
+
+
+%%=======================================================================
+\section{Bibliography (\texttt{2\_biblatex.tex})}
+\label{sec:bibliography}
+%%=======================================================================
+
+\novathesis{} uses \ntindex[bibliography!biblatex]{\latexinline{biblatex}} with the \ntindex[bibliography!biber]{\latexinline{Biber}} backend.
+
+%%-----------------------------------------------------------------------
+\subsection{General Behavioral Options}
+\label{sub:bib_general}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntbibsetup{
+  backend      = biber,        % recommended; 'bibtex' also works
+  giveninits   = true,         % print initials only
+  maxbibnames  = 1000,         % list all authors (no 'et al')
+  backref      = true,         % show page numbers for each citation
+  backrefstyle = three,        % compact back-reference style
+  urldate      = iso,          % ISO dates for URL access
+  date         = iso,          % ISO dates for publications
+}
+\end{latexcode}
+
+%%-----------------------------------------------------------------------
+\subsection{Choosing a Citation Style}
+\label{sub:bib_style}
+%%-----------------------------------------------------------------------
+
+Uncomment exactly one style block in \verb!0-Config/2_biblatex.tex!:
+
+\begin{description}
+  \item[Numeric (sorted by first author)] The default.  Citations like [1]:
+\begin{latexcode}
+\ntbibsetup{style=numeric-comp, sortcites=true, sorting=nyt}
+\end{latexcode}
+
+  \item[Numeric (citation order)] Sequential citations [1], [2], \ldots:
+\begin{latexcode}
+\ntbibsetup{style=numeric-comp, sortcites=true, sorting=none}
+\end{latexcode}
+
+  \item[Alpha] Citations like [Lou24]:
+\begin{latexcode}
+\ntbibsetup{style=alphabetic, sortcites=true, sorting=nyt}
+\end{latexcode}
+
+  \item[Author-year] Citations like (Lourenço, 2024):
+\begin{latexcode}
+\ntbibsetup{style=authoryear-comp, sortcites=true, sorting=nyt}
+\end{latexcode}
+
+  \item[Discipline-specific] IEEE, APA, Vancouver, Chicago are also
+    available — see the style blocks in \verb!2_biblatex.tex!.
+\end{description}
+
+%%-----------------------------------------------------------------------
+\subsection{Webography (Separate Online Bibliography)}
+\label{sub:webography}
+%%-----------------------------------------------------------------------
+
+To collect all \verb!@online! entries in a separate section, set a title:
+\begin{latexcode}
+\ntsetup{print/webography=Webography}
+\end{latexcode}
+When this option is active, \verb!@online! references are excluded from the
+main bibliography list and printed in their own section at the same location.
+
+
+%%=======================================================================
+\section{Adding Content (\texttt{4\_files.tex})}
+\label{sec:adding_content}
+%%=======================================================================
+
+All content files are registered in \verb!0-Config/4_files.tex! using
+\verb!\ntaddfile!.
+
+%%-----------------------------------------------------------------------
+\subsection{Bibliography Files}
+\label{sub:bib_files}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntaddfile{bib}{bibliography.bib}
+\ntaddfile{bib}{extra.bib}   % multiple .bib files are allowed
+\end{latexcode}
+
+Place \verb!.bib! files in \verb!4-Bibliography/!.
+
+%%-----------------------------------------------------------------------
+\subsection{Front Matter}
+\label{sub:front_matter}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntaddfile{dedication}{dedication}          % 1-FrontMatter/dedication.tex
+\ntaddfile{acknowledgements}{acknowledgements}
+\ntaddfile{quote}{quote}
+% Dedication, quote, and acknowledgements are skipped in 'working' mode.
+
+% Integrity statement (school-specific files available in NOVAthesisFiles)
+\ntaddfile{statement}[en]{univ-school/statement-en}
+\end{latexcode}
+
+%%-----------------------------------------------------------------------
+\subsection{Abstracts}
+\label{sub:abstracts}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntaddfile{abstract}[pt]{abstract-pt}   % 1-FrontMatter/abstract-pt.tex
+\ntaddfile{abstract}[en]{abstract-en}
+% Other supported language codes: de, es, fr, gr, it, nl, uk, zhs, zht
+\end{latexcode}
+
+The order in which abstracts appear is controlled by
+\verb!\ntsetup{abstractorder=...}! (Section~\ref{sub:language_options}).
+
+%%-----------------------------------------------------------------------
+\subsection{Glossaries, Acronyms, and Symbols}
+\label{sub:glossaries}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntaddfile{glossaries}[glossary]{glossary}   % 1-FrontMatter/glossary.tex
+\ntaddfile{glossaries}[acronym]{acronyms}
+\ntaddfile{glossaries}[symbols]{symbols}
+\end{latexcode}
+
+Each file uses standard \texttt{glossaries} package commands such as 
+\verb!\newglossaryentry!, \verb!\newacronym!, etc. 
+To include them in your text, use the \latexinline{\gls{label}} command.
+
+%%-----------------------------------------------------------------------
+\subsection{Main Chapters}
+\label{sub:chapters}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntaddfile{chapter}{chapter-introduction}   % 2-MainMatter/chapter-introduction.tex
+\ntaddfile{chapter}{chapter-methods}
+\ntaddfile{chapter}{chapter-results}
+\ntaddfile{chapter}{chapter-conclusion}
+\end{latexcode}
+
+Chapters are included in the order they appear in \verb!4_files.tex!.
+To restrict a chapter to specific document types, pass an optional list:
+\begin{latexcode}
+\ntaddfile{chapter}[mscplan,msc]{chapter-proposal}  % only in \gls{msc} docs
+\end{latexcode}
+
+%%-----------------------------------------------------------------------
+\subsection{Appendices and Annexes}
+\label{sub:appendices}
+%%-----------------------------------------------------------------------
+
+\begin{latexcode}
+\ntaddfile{appendix}{appendix-a}   % 2-MainMatter/appendix-a.tex
+\ntaddfile{annex}{annex-b}         % 2-MainMatter/annex-b.tex
+\end{latexcode}
+
+The same optional doctype filter applies to appendices and annexes.
+
+%%-----------------------------------------------------------------------
+\subsection{Custom Covers}
+\label{sub:custom_covers}
+%%-----------------------------------------------------------------------
+
+To override an automatically-generated cover with a custom file:
+\begin{latexcode}
+\ntaddfile{cover}[1]{cover-page}   % 1-FrontMatter/cover-page.tex
+% cover ids: 1 (main cover), 2 (front page), N (back cover), spine
+\end{latexcode}
+
+
+%%-----------------------------------------------------------------------
+\subsection{Bundled Institutional Images}
+\label{sub:bundled_images}
+%%-----------------------------------------------------------------------
+
+NOVAthesis bundles a set of institutional logo images in
+\verb!NOVAthesisFiles/Images/!.  These files are \emph{not} in the default
+graphics search path, so reference them with the \latexinline{\DIRIMAGES}
+macro (or copy them to \verb!5-Figures/! to use just the file name):
+
+\begin{latexcode}
+\includegraphics[height=1.5cm]{\DIRIMAGES/FCT_logo_positive}
+\end{latexcode}
+
+Table~\ref{tab:bundled_images} shows the available images.
+
+\begin{table}[htb]
+  \caption{Institutional logo images bundled in \texttt{NOVAthesisFiles/Images/}.}
+  \label{tab:bundled_images}
+  \centering\small
+  \begin{ShadedTabularX}{\textwidth}{llX}
+    \toprule
+    \thead{Preview} 
+            & \thead{File name} 
+                    & \thead{Description} \\
+    \includegraphics[height=0.9cm,align=c]{\DIRIMAGES/FCT_logo_positive}          
+            & \texttt{FCT\_logo\_positive}
+                    & FCT logo (colour) \\
+    \includegraphics[height=0.9cm,align=c]{\DIRIMAGES/FCT_logo_negative}          
+            & \texttt{FCT\_logo\_negative}          
+                    & FCT logo (negative / white) \\
+    \includegraphics[height=0.9cm,align=c]{\DIRIMAGES/republica_portuguesa}        
+            & \texttt{republica\_portuguesa}        
+                    & República Portuguesa emblem \\
+    \includegraphics[height=0.9cm,align=c]{\DIRIMAGES/republica_portuguesa_CTES}   
+            & \texttt{republica\_portuguesa\_CTES}   
+                    & República Portuguesa — CTES variant \\
+    \includegraphics[height=0.9cm,align=c]{\DIRIMAGES/Logo_Governo_Portugal}       
+            & \texttt{Logo\_Governo\_Portugal}       
+                    & Governo de Portugal logo \\
+    \includegraphics[height=0.9cm,align=c]{\DIRIMAGES/Logo_UE_FSE}                 
+            & \texttt{Logo\_UE\_FSE}                 
+                    & EU / Fundo Social Europeu logo \\
+    \bottomrule
+  \end{ShadedTabularX}
+\end{table}
+
+
+%%=======================================================================
+\section{Custom Packages and Commands (\texttt{5\_packages.tex})}
+\label{sec:custom_packages}
+%%=======================================================================
+
+Add any extra \verb!\usepackage! commands and custom macros in
+\verb!0-Config/5_packages.tex!.  This file is loaded after the template
+core so any redefinitions here take precedence.
+
+This file also contains the pre-defined \texttt{minted} code environments
+used throughout the demo chapters:
+
+\begin{description}
+  \item[\texttt{latexcode}] Syntax-highlighted LaTeX listing with a
+    light beige background.
+  \item[\texttt{bashcode}] Shell/Bash listing with the same style.
+  \item[\texttt{pythoncode}] Python listing with the same style.
+  \item[\latexinline|\latexinline{...}| ] Inline highlighted code fragments.
+\end{description}
+
+Use these environments in your chapters for consistent formatting:
+\begin{latexcode}
+  \ntsetup{school=nova/fct}
+\end{latexcode}
+
+\begin{bashcode}
+  make lua
+\end{bashcode}
+
+To add a language-string rename (e.g.\ change the TOC heading):
+\begin{latexcode}
+\ntlangsetup{en/contents=Table of Contents}
+\ntlangsetup{pt/contents=Índice}
+\end{latexcode}
+
+
+%%=======================================================================
+\section{Document Status Workflow}
+\label{sec:status_workflow}
+%%=======================================================================
+
+The \texttt{docstatus} option controls which pages are included and
+how the cover is rendered.  Table~\ref{tab:docstatus} summarises
+the differences.
+
+\begin{table}[htb]
+  \caption{Effect of \texttt{docstatus} on the generated document.}
+  \label{tab:docstatus}
+  \centering\small
+  \begin{ShadedTabular}{lccc}
+    \toprule
+    \textbf{Feature} & \texttt{working} & \texttt{provisional} & \texttt{final} \\
+    % \midrule
+    Timestamp on cover      & yes & no  & no  \\
+    Dedication / quote      & no  & yes & yes \\
+    Acknowledgements        & no  & yes & yes \\
+    Integrity statement     & no  & yes & yes \\
+    Evaluation committee    & no  & no  & yes \\
+    Book spine              & no  & no  & yes \\
+    \gls{PDFA}-2b output    & no  & no  & yes \\
+    \bottomrule
+  \end{ShadedTabular}
+\end{table}
+\noindent See Section~\ref{sub:pdfa} for details on the \gls{PDFA} archival output.
+
+A typical workflow:
+\begin{enumerate}
+  \item Write with \texttt{docstatus=working} (fast, no distractions).
+  \item Switch to \gls{msc} when submitting to the examination
+    jury — a clean \gls{PDF} without the committee members.
+
+  \item Switch to \texttt{final} after the examination — includes the
+    committee, the book spine, and produces a \gls{PDFA}-2b archival document
+    (see Section~\ref{sub:pdfa}).
+\end{enumerate}
+
+
+%%=======================================================================
+\section{Building the Document}
+\label{sec:building}
+%%=======================================================================
+
+%%-----------------------------------------------------------------------
+\subsection{Using \texttt{make}}
+\label{sub:make}
+%%-----------------------------------------------------------------------
+
+The \texttt{Makefile} at the project root wraps \texttt{latexmk} and provides a set of commands to manage the entire document lifecycle. You can run \bashinline{make help} at any time to see the full list of available targets.
+
+\paragraph{Basic Compilation.} These targets handle the multi-pass build (including bibliography) using specific engines:
+\begin{bashcode}
+make        # build with LuaLaTeX (recommended default)
+make lua    # build using LuaLaTeX
+make xe     # build using XeLaTeX
+make pdf    # build using pdfLaTeX
+\end{bashcode}
+
+\paragraph{Viewing and Debugging.}
+\begin{bashcode}
+make view   # build (if needed) and open the PDF in the default viewer
+make watch  # rebuild automatically every time a file is saved
+make log    # show the LaTeX log file
+\end{bashcode}
+
+\paragraph{Cleaning Files.}
+\begin{bashcode}
+make clean      # remove auxiliary files (keep the PDF)
+make distclean  # same as clean, but also remove the PDF and SyncTeX files
+\end{bashcode}
+
+\paragraph{Variables.} The behavior is adjusted with variables appended to the command:
+\begin{bashcode}
+make V=1                        # verbose (raw LaTeX output)
+make BATCH=1                    # batch mode, never stops at errors
+make TL=2024                    # use the TeX Live 2024 release
+make NT="doctype=msc,lang=pt"   # override \ntsetup options (see below)
+make FILE=mythesis              # explicit root file
+\end{bashcode}
+
+\paragraph{Overrides.} The \verb!NT! variable accepts any comma-separated
+list of \latexinline{\ntsetup} options; they take precedence over the values
+in \verb!0-Config/1_novathesis.tex!, without editing any file.  This is the
+easiest way to build for another school, language, or document type.  See
+Chapter~\ref{app:build} for the full reference.
+
+%%-----------------------------------------------------------------------
+\subsection{Using \texttt{latexmk} Directly}
+\label{sub:latexmk}
+%%-----------------------------------------------------------------------
+
+\begin{bashcode}
+latexmk -pdflua -shell-escape -file-line-error template
+\end{bashcode}
+
+The \verb!latexmkrc! file at the project root is loaded automatically and
+already configures the auxiliary directory, Biber, and the glossaries.
+
+Remember to select \textbf{biber} (not bibtex) as the bibliography
+processor — either in your editor preferences or via
+\verb!latexmk!'s default settings.
+
+%%-----------------------------------------------------------------------
+\subsection{Building for Another School}
+\label{sub:build_variants}
+%%-----------------------------------------------------------------------
+
+The \verb!NT! overrides build for a specific school without modifying the
+\verb!0-Config/! files.  This is also what the CI pipeline and the
+maintainers use to generate sample PDFs.  For full documentation see
+Chapter~\ref{app:build}.
+
+Quick example:
+\begin{bashcode}
+make NT="school=nova/fct,doctype=phd,lang=en,docstatus=final"
+\end{bashcode}
+
+%%-----------------------------------------------------------------------
+\subsection{Overleaf}
+\label{sub:build_overleaf}
+%%-----------------------------------------------------------------------
+
+On \Overleaf{} the build is triggered by pressing \emph{Recompile}.
+Ensure the settings described in Section~\ref{sub:overleaf} are applied
+(\hologo{LuaLaTeX} compiler, Biber bibliography, \verb!template.tex! as main file).
+\Overleaf{} compiles on their servers so \texttt{make} is not available —
+all configuration is done by editing the \verb!0-Config/! files.
+%%-----------------------------------------------------------------------
+\subsection{\texorpdfstring{\gls{PDFA}}{PDF/A} Archival Output}
+\label{sub:pdfa}
+%%-----------------------------------------------------------------------
+
+\ntindex[pdf/a!]{Archival compliance}
+When \verb!\ntsetup{docstatus=final}! is set, \novathesis{} automatically
+produces a \textbf{\gls{PDFA}-2b} conformant document — the archival-quality
+format required by most institutional repositories and digital libraries.
+No configuration beyond setting \texttt{docstatus=final} is needed.
+
+\medskip
+\noindent\textbf{How it works (single-pass).}
+\novathesis{} loads the \texttt{pdfx} package during the normal \LaTeX{}
+preamble, just before \texttt{hyperref}.  This single-pass approach requires
+no extra compilation run beyond the usual cross-reference and bibliography
+passes performed by every \LaTeX{} document.
+
+The XMP metadata packet (title, author, language) is written from the
+cover-page data defined in \verb!0-Config/3_cover.tex! and embedded into
+the PDF automatically.
+
+\medskip
+\noindent\textbf{\gls{PDFA} standard choice.}
+\novathesis{} targets \textbf{\gls{PDFA}-2b} (not~1b).  \gls{PDFA}-1b prohibits
+transparency, which is incompatible with the TikZ cover-page graphics used
+by virtually all supported schools.  \gls{PDFA}-2b lifts this restriction while
+remaining accepted by all major institutional repositories.
+
+\medskip
+\noindent\textbf{XMP metadata.}
+The thesis title, author name, and language are taken directly from the
+cover-page data in \verb!0-Config/3_cover.tex! and passed to \texttt{pdfx},
+which embeds them in the required XMP packet.  No additional configuration
+is needed.
+
+\medskip
+\noindent\textbf{Images and colour spaces.}
+The most common cause of \gls{PDFA} validation failures is an embedded image
+with a device-dependent colour space (plain RGB or CMYK) and no ICC
+profile.  \gls{PDFA}-2b requires every included image to carry an embedded
+ICC profile or use a calibrated colour space.  Practical guidance by
+format:
+
+\begin{description}
+  \item[JPEG / JPG] Most cameras and photo-editors embed an sRGB ICC
+    profile automatically.  Screenshots and diagrams exported from
+    presentation or diagramming software often do not.  Check the
+    source file and add a profile before including it (\emph{e.g.}\ via
+    GIMP's \emph{Image → Mode → Assign Colour Profile}, or with
+    ImageMagick: \verb!magick -profile sRGB.icc input.jpg output.jpg!).
+
+  \item[PNG] Inkscape embeds an sRGB profile when exporting via
+    \emph{File → Export PNG Image}.  Images from other sources should be
+    checked; if the profile is missing, add it with the same tools as
+    for JPEG above.
+
+  \item[TIFF] \LaTeX{} engines cannot include TIFF directly.  Convert
+    to PDF or PNG with an embedded ICC profile using an image-editing
+    tool (GIMP, ImageMagick, or Photoshop) before including the result.
+
+  \item[PDF (figures)] An included PDF figure must itself use
+    device-independent colour spaces throughout.  Figures produced by
+    Matplotlib, Inkscape, and TikZ are almost always clean.  Scanned
+    or converted PDFs may not be — if VeraPDF reports colour-space
+    errors linked to a specific figure, pre-process it with Ghostscript
+    before re-including:
+\begin{bashcode}
+gs -dBATCH -dNOPAUSE -sDEVICE=pdfwrite \
+   -sColorConversionStrategy=sRGB \
+   -o figure-fixed.pdf figure-original.pdf
+\end{bashcode}
+\end{description}
+
+\noindent The safest choice is \textbf{vector PDF} (TikZ, Inkscape,
+Matplotlib): it contains no raster data and is intrinsically
+colour-space clean.
+
+\medskip
+\noindent\textbf{Opting out.}
+To disable \gls{PDFA} output even in \texttt{final} mode, uncomment the escape
+hatch in \verb!0-Config/1_novathesis.tex!:
+
+\begin{latexcode}
+\ntsetup{pdfa=false}
+\end{latexcode}
+
+\noindent\textbf{Verifying compliance.}
+After the final build, validate with:
+\begin{itemize}
+  \item \textbf{VeraPDF} (open source, \url{https://verapdf.org}) —
+        the reference \gls{PDFA} validator.
+  \item \textbf{Adobe Acrobat Pro} — \emph{Tools → Print Production →
+        Preflight → \gls{PDFA} compliance}.
+  \item \textbf{\gls{PDFA} Live!} (online service) — quick check without local
+        installation.
+\end{itemize}

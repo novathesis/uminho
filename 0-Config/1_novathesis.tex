@@ -1,0 +1,519 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Config/1_novathesis.tex
+%% NOVA thesis configuration file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%============================================================
+%% THE MOST IMPORTANT/POPULAR TEMPLATE CUSTOMIZATION / OPTIONS
+%%============================================================
+
+%-------------------------------------------------------------
+% The document type
+%
+%     DEFAULT: doctype <- phd
+%.............................................................
+%
+%         phd —> PhD thesis
+%     phdplan —> PhD thesis plan
+%     phdprop —> PhD thesis proposal
+%         msc —> MSc dissertation
+%     mscplan —> MSc dissertation plan
+%         bsc —> BSc report
+%       plain —> Other report
+%-------------------------------------------------------------
+\ntsetup{doctype=msc}
+
+
+
+%-------------------------------------------------------------
+% The school id
+%
+%     DEFAULT: school <- nova/fct
+%.............................................................
+%
+%     NOVA-FCT:   nova/fct, nova/fct/di-adc, nova/fct/cbbi,
+%     NOVA-ITQB:  nova/itqb/gray, nova/itqb/green,
+%     NOVA-FCSH:  nova/fcsh,
+%     NOVA-ENSP:  nova/ensp,
+%     ULISBOA:    ulisboa/ist, ulisboa/fcul, ulisboa/fmv, ulisboa/iseg,
+%     ULHT:       ulht/deisi, ulht/mge,
+%     UMINHO:     uminho/eaad, uminho/ese, uminho/eeng, uminho/elach,
+%                 uminho/ed, uminho/ec, uminho/i3bs, uminho/emed,
+%                 uminho/ie, uminho/ics, uminho/epsi, uminho/eeg,
+%     UPORTO:     uporto/fcup,
+%     ISCTE-IUL:  iscteiul/eta
+%     IPL:        ipl/isel, ipl/isel/meb,
+%     IPS:        ips/ests,
+%     OTHER:      other/esep
+%-------------------------------------------------------------
+\ntsetup{school=uminho/eeng}
+
+
+
+%-------------------------------------------------------------
+% The status of the document
+%
+%     DEFAULT: docstatus <- working
+%.............................................................
+%
+%     working —> working version (skips some “frontmatter” stuff)
+% provisional —> submission version (no committee)
+%       final —> final version (with committee)
+%-------------------------------------------------------------
+% \ntsetup{docstatus=final}
+
+
+
+%-------------------------------------------------------------
+% The main language for the document text, following ISO 3166-1 (alfa-2)
+%
+%     DEFAULT: lang <- en
+%.............................................................
+%
+%         cat -> catalan
+%          cz -> czech
+%          de -> german
+%          dk -> danish
+%          en -> english
+%          es -> spanish
+%          fr -> french
+%          gr -> greek
+%          it -> italian
+%          nl -> dutch
+%          pl -> polish
+%          pt -> portuguese
+%          sk -> slovak
+%          uk -> ukrainian
+%-------------------------------------------------------------
+% \ntsetup{lang=pt}
+
+
+
+%-------------------------------------------------------------
+% Print Generative AI Disclosure Satement
+%
+%      DEFAULT: print/aidisclosure <- aidisclose
+%.............................................................
+
+%        false —> do not print AI Disclosure
+%   aidisclose —> use '7-aidisclose.tex' + 'aidisclose' package
+% filename.tex —> use '1-Frontmatter/filename.tex' as the
+%                 peersonalized AI Disclosure statement (see example).
+%-------------------------------------------------------------
+% \ntsetup{print/aidisclosure=aidisclosure.tex}
+
+
+
+%------------------------------------------------------------
+% Sustainable Development Goasl (SDG)
+%
+%     DEFAULTS: print/sdgs/list   <- empty
+%               print/sdgs/type   <- inverted
+%               print/sdgs/size   <- 2cm
+%               print/sdgs/hspace <- 5mm
+%               print/sdgs/vspace <- 4mm
+%.............................................................
+%
+% Do not uncomment items below.
+% Add the numbers to the 'print/sdgs/list' below.
+%
+%     SDG  1 -> No poverty
+%     SDG  2 -> Zero hunger
+%     SDG  3 -> Good health and well-being
+%     SDG  4 -> Quality education
+%     SDG  5 -> Gender equality
+%     SDG  6 -> Clean water and sanitation
+%     SDG  7 -> Affordable and clean energy
+%     SDG  8 -> Decent work and economic growth
+%     SDG  9 -> Industry, innovation and infrastructure
+%     SDG 10 -> Reduced inequalities
+%     SDG 11 -> Sustainable cities and communities
+%     SDG 12 -> Responsible consumption and production
+%     SDG 13 -> Climate action
+%     SDG 14 -> Life below water
+%     SDG 15 -> Life on land
+%     SDG 16 -> Peace, justice, and strong institutions
+%     SDG 17 -> Partnerships for the goals
+%------------------------------------------------------------
+% \ntsetup{print/sdgs/list={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17}}
+% \ntsetup{print/sdgs/type=inverted | normal | mono}   % default: inverted
+% \ntsetup{print/sdgs/size=2cm}
+% \ntsetup{print/sdgs/hspace=5mm}
+% \ntsetup{print/sdgs/vspace=4mm}
+
+
+
+%-------------------------------------------------------------
+% The target media for the PDF
+%
+%     DEFAULT: media <- screen
+%.............................................................
+%
+%    screen —> left and right margins are equal, colored links
+%     paper —> left and right margins are, black links
+%-------------------------------------------------------------
+% \ntsetup{media=paper}
+
+
+
+%-------------------------------------------------------------
+% Separate bibliography for @online references
+%
+%     DEFAULT: print/webography <- empty
+%.............................................................
+%
+%     When empty, all the references (including @online) are
+%     printed together.
+%
+%     When non-empty, the given value is used as the title for
+%     the online bibliography
+%-------------------------------------------------------------
+% \ntsetup{print/webography=Webography}
+
+
+
+
+
+%%============================================================
+%% THE LESS IMPORTANT/POPULAR TEMPLATE CUSTOMIZATION / OPTIONS
+%%============================================================
+
+
+%-------------------------------------------------------------
+% The order for abstracts for the main language
+% The order for abstracts for a specific language
+%
+%     DEFAULTS: for language 'en': abstractorder <- {en={en,pt}}
+%               for language 'L' : abstractorder <- {L={L,en}}
+%.............................................................
+%
+%     See \ntsetup{lang=pt} above for the list of valid languages
+%-------------------------------------------------------------
+% \ntsetup{abstractorder={en,pt,zhs,zht}} % with Simplified and Traditional Chinese abstracts
+% \ntsetup{abstractorder={en,pt,uk,gr}}   % With Ukrainian (cyrilic) abstract
+
+
+
+%-------------------------------------------------------------
+% Print the work title with each abstract
+%
+%     DEFAULTS: abstract/title       <- none    (none, before, after)
+%               abstract/title/align <- center  (left, center, right)
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{abstract/title=before}
+% \ntsetup{abstract/title/align=left}
+
+
+
+%-------------------------------------------------------------
+% List of additional languages are used in the document
+%
+%     DEFAULT: lang/extra <- {it, pl}
+%.............................................................
+%
+%     These are really **extra** languases, besides the main
+%     language and those used in the abstracts.
+%     See \ntsetup{lang=pt} above for the list of valid languages
+%-------------------------------------------------------------
+% \ntsetup{lang/extra={de,es}}
+
+
+
+%-------------------------------------------------------------
+% The color for the hyperlinks (URLs, cross references, citations)
+%
+%     DEFAULT: color/links <- a customized dark blue color
+%.............................................................
+%
+%     For the list of valid color names, take a look at the "xcolor"
+%     package documentation, namely the "svgname" colors
+%-------------------------------------------------------------
+% \ntsetup{color/links=SteelBlue}
+
+
+
+%-------------------------------------------------------------
+% The color for the glossary managed hyperlinks (glossary, symbols, etc)
+%
+%     DEFAULT: color/glossaries/gls <- black
+%.............................................................
+%
+%     For the list of valid color names, take a look at the "xcolor"
+%     package documentation, namely the "svgname" colors
+%-------------------------------------------------------------
+% \ntsetup{color/glossaries/gls=SteelBlue}
+
+
+
+%-------------------------------------------------------------
+% Reverse index the glossary entries
+%
+%     DEFAULT: glossaries/list/reverse <- true
+%.............................................................
+%
+%     For each glossary entry, show the page numbers where its was used
+%-------------------------------------------------------------
+% \ntsetup{glossaries/list/reverse=false}
+
+
+
+%-------------------------------------------------------------
+% Glossary layout (columns width)
+%
+%     DEFAULT: glossaries/layout <- lX
+%.............................................................
+%
+%     Specification for the two columns of the layout
+%-------------------------------------------------------------
+% \ntsetup{glossaries/layout = {>{\raggedright}p{0.2\textwidth}X}}
+
+
+
+%-------------------------------------------------------------
+% Include the table of contents in the table of contents
+%     DEFAULT: tocintoc <- true
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{tocintoc=false}
+
+
+
+%-------------------------------------------------------------
+% Shall a second cover page be forced?
+%
+%     DEFAULT: print/frontpage <- false
+%.............................................................
+%
+%     If the contents for the front page are not explicitly defined,
+%     the front page will be a replica of the cover page
+%-------------------------------------------------------------
+% \ntsetup{print/frontpage=true}
+
+
+
+%-------------------------------------------------------------
+% Print the evaluation committee
+%
+%     DEFAULTs: if status=working:      print/committee <- false
+%               if status=provisional:  print/committee <- false
+%               if status=final:        print/committee <- true
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{print/committee=true}
+
+
+
+%-------------------------------------------------------------
+% Print the declaration/statement of integrity
+%     DEFAULT: print/statement <- false
+%.............................................................
+%
+%     The statement is printed immediately after the front page
+%-------------------------------------------------------------
+% \ntsetup{print/statement=true}
+
+
+
+%-------------------------------------------------------------
+% Print the book spine
+%     DEFAULTS: if status=working:      spine/layout <- false
+%               if status=provisional:  spine/layout <- false
+%               if status=final:        spine/layout <- trim
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{spine/layout=false}   % suppress the spine even in 'final'
+% \ntsetup{spine/layout=trim}    % force the spine in any docstatus
+
+
+
+%-------------------------------------------------------------
+% Where to print the "other lists" (figures, tables, listings, …)
+%
+%     DEFAULT: print/otherlists <- frontmatter  (frontmatter, backmatter)
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{print/otherlists=backmatter}
+
+
+
+%-------------------------------------------------------------
+% Where to print the glossaries (glossary, acronyms, symbols, …)
+% Use 'false' to not print them at all
+%
+%     DEFAULT: print/glossaries <- frontmatter  (frontmatter, backmatter, false)
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{print/glossaries=backmatter}
+% \ntsetup{print/glossaries=false}
+
+
+
+%-------------------------------------------------------------
+% Print the copyright message
+%     DEFAULT: print/copyright <- true
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{print/copyright=false}
+
+
+
+%-------------------------------------------------------------
+% Print the (words) index at the end of the document
+%     DEFAULT: print/index <- false
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{print/index=true}
+
+
+
+%-------------------------------------------------------------
+% Print a timestamp (when PDF was generated) in the cover
+%     DEFAULTS: if status=working:      print/timestamp <- true
+%               if status=provisional:  print/timestamp <- false
+%               if status=final:        print/timestamp <- false
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{print/timestamp=false}
+
+
+
+%-------------------------------------------------------------
+% Use the same (main) font in URLs
+%     DEFAULT: whatever 'hyperref' uses as default
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{style/url=same}
+
+
+
+%-------------------------------------------------------------
+% Floats (figures and tables) numbering
+%
+%     DEFAULT: numbering/floats <- chapter
+%.............................................................
+%
+%      chapter —> numbering is <chapter>.<float_number>
+%   sequential —> numbering is <float_number>
+%-------------------------------------------------------------
+% \ntsetup{numbering/floats=sequential}
+
+
+
+%-------------------------------------------------------------
+% You can use any of the default LaTeX style files:
+%     DEFAULT: style/font <- newpx   (this is a 'palatino'-like font)
+%.............................................................
+%
+%     Any font style available in LaTeX can be used here,
+%     plus the additional listed below.  Those maked with (*)
+%     require LuaLaTeX or XeLaTeX and DO NOT work with pdfLaTeX.
+%         arial                 -> (*)
+%         bookman               ->
+%         calibri               -> (*)
+%         erewhon               ->
+%         futura                -> (*)
+%         kieranhealy           -> (*) 
+%         libertine             -> 
+%         newpx                 -> 
+%         newsgott              -> (*) specially tailored for UMINHO
+%         opensans              -> 
+%         palatino-gyre-pagella -> 
+%         palatino-linotype     -> 
+%         palatino              -> 
+%         scholax               -> 
+%         verdana               -> (*)
+%-------------------------------------------------------------
+%
+% -- Exampple 1 --
+% \ntsetup{style/font=libertine}
+% 
+% -- Exampple 2 --
+% \ntsetup{style/font=Times New Roman}
+% \ntsetup{style/font/attributes={
+%   Extension = .ttf,
+%   Ligatures=TeX,
+%   Mapping=tex-text,
+%   UprightFont = *,
+%   ItalicFont = * Italic,
+%   BoldFont = * Bold,
+%   BoldItalicFont = * Bold Italic,
+% }}
+
+
+
+
+%--------------------------------.sty----.sty---------------
+% The chapter style to be used
+%     DEFAULT: style/chapter <- bar
+%.............................................................
+%
+%     Any chapter style available in 'memoir' can be used here,
+%     plus the additional listed below.
+%         bar-compact -> similar to 'bar' but using less vertical space
+%         bar         -> specially tailored for NOVA FCT
+%         bluebox     -> 
+%         compact     -> a very compact (reduce vertical space) chapter style
+%         elegant     -> a classical
+%         fmv         -> specially tailored for ULISBOA-FMV (similar to 'compact')
+%         ist         -> specially tailored for ULISBOA-IST
+%         ist2        -> specially tailored for ULISBOA-IST
+%         vz34        -> 
+%         vz43        ->
+%-------------------------------------------------------------
+% \ntsetup{style/chapter=bar-compact}
+
+
+
+%-------------------------------------------------------------
+% The language for the cover page (and front page)
+%     DEFAULT: lang/cover <- lang/main  (the same as the main language)
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{lang/cover=en}
+
+
+
+%-------------------------------------------------------------
+% The language for the copyright message
+%     DEFAULT: lang/copyright <- lang/main  (the same as the main language)
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{lang/copyright=en}
+
+
+
+%-------------------------------------------------------------
+% Force the “book spine” width
+%     DEFAULT: 1cm
+%.............................................................
+%
+%-------------------------------------------------------------
+% \ntsetup{spine/width=2cm}
+
+
+
+%-------------------------------------------------------------
+% Cover development and debug: print rulers in the cover page
+%     DEFAULT: debug <- {}
+%.............................................................
+%    
+%         cover —> print grid in covers and spine, and boxes 
+%                  around cover elements
+%         spine —> print red boxes around spine elements
+%-------------------------------------------------------------
+% \ntsetup{debug={cover,spine}}

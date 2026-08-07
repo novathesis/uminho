@@ -1,0 +1,49 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Config/6_list_of.tex
+%% NOVA thesis configuration file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE Config/6_list_of.tex}%
+
+%=============================================================================
+% WHICH LISTS/INDEXES TO PRINT?
+%         syntax: \ntaddlistof{list-name}
+%   You may add more lists if you want to, but please notice that the
+%   initial "\" is always omited in the "list-name"
+%=============================================================================
+\makeatletter
+
+% To move some listof to the end of the document, use:
+%     \ntaddlistof[backmatter]{the_list_of}
+
+% --- 0. BASIC SETUP ---
+\ntaddlistof{listoffigures}      % The List of Figures. Comment to omit.
+\ntaddlistof{listoftables}       % The List of Tables. Comment to omit.
+
+
+% --- 1. ALGORITHMS SETUP ---
+\newcount\has@algo@list
+\has@algo@list=0 % Default to false
+
+% Check for any algorithm package
+\@ifpackageloaded{coloredtheorem}{\has@algo@list=1}{}
+\@ifpackageloaded{algorithm2e}{\has@algo@list=1}{}
+\@ifpackageloaded{algorithms}{\has@algo@list=1}{}
+\@ifpackageloaded{algorithm}{\has@algo@list=1}{}
+
+% Execute only once if any of the above are active
+\ifnum\has@algo@list=1
+    % Since you noted cthlistofalgorithms is part of the set,
+    % we use the standard list name for the set.
+    \ntaddlistof{listofalgorithms}
+\fi
+
+
+% --- 2. LISTINGS SETUP ---
+% Both "listings" and "minted" packages are supported, even simultaneously.
+% NOVAthesis automatically unifies their counters and list at startup.
+% This line is safe even when no listing package is loaded — it is a no-op in that case.
+\ntaddlistof{listoflistings}     % The List of Listings. Comment to omit.
+
+\makeatother
