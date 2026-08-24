@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #-----------------------------------------------------------------------------
-# NOVAthesis — nt-variant.sh
-# Version 8.0.2 (2026-08-07)
+# novathesis — nt-variant.sh
+# Version 8.2.0 (2026-08-21)
 #
 # Build one (or all) school variants of the template WITHOUT touching the
 # working copy. Settings are injected at the command line through the
-# \ntoverride mechanism (see NOVAthesisFiles/StyFiles/nt-setup.sty), so no
+# \ntoverride mechanism (see novathesisFiles/StyFiles/nt-setup.sty), so no
 # temporary workspace and no config patching are needed.
 #
 # Usage:
@@ -23,6 +23,10 @@
 #   -e engine    lua|pdf|xe    (default: lua if allowed by schools.conf)
 #   -s status    working|provisional|final   (default: final)
 #   -x keys      extra \ntsetup keys, e.g. 'print/index=true'
+#                (this is what Makefile.dev's 'make school'/'make matrix' NT=
+#                variable is forwarded through as; renamed at the Make level
+#                for consistency with the main Makefile's NT=, but left as -x
+#                here since it only appends to \ntoverride, not replace it)
 #   -o outdir    where to put the renamed PDF (default: repo root; with -a a
 #                subfolder YYYY-MM-DD@hh-mm-ss is created at invocation time)
 #   -j jobs      parallel jobs for -a (default: 1)
@@ -48,9 +52,26 @@
 #   NT_COST_DEFAULT=N  assumed seconds for a variant with no recorded time
 #                  (default 60).  Matrix units are dispatched longest-first
 #                  (LPT) using measured times cached in .Build/.matrix-costs.tsv;
-#                  delete that file to reset to group-id order.
+#                  delete that file to reset to group-id order.  Each variant
+#                  keeps its last NT_COST_HISTORY runs (default 5, comma-list
+#                  in the tsv's 2nd column) and is scheduled on their average,
+#                  smoothing one-off outliers (e.g. a cold run, or a build that
+#                  happened to land on an efficiency core under heavy JOBS
+#                  contention) instead of just chasing the latest sample.
+#   NT_COST_HISTORY=N  how many recent timings to average per variant
+#                  (default 5); does not retroactively shrink/grow history
+#                  already on disk, only how many a future merge keeps.
 #-----------------------------------------------------------------------------
 set -euo pipefail
+
+# Colors for status lines (▶ start, ✓ success, ✗ failure). Disabled when
+# stdout isn't a terminal (e.g. piped to a file/CI log) or NO_COLOR is set.
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  C_GREEN=$'\033[32m'; C_RED=$'\033[31m'; C_YELLOW=$'\033[33m'
+  C_BLUE=$'\033[34m';  C_BOLD=$'\033[1m'; C_RESET=$'\033[0m'
+else
+  C_GREEN="" C_RED="" C_YELLOW="" C_BLUE="" C_BOLD="" C_RESET=""
+fi
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/.." && pwd)
@@ -165,6 +186,37 @@ list_variants() {
 }
 
 #--- single variant build ------------------------------------------------------
+#--- per-variant outcome recording (matrix summary) ------------------------------
+# One file per variant id, like NT_TIMINGS_DIR: parallel workers never contend.
+# A no-op outside matrix mode, where NT_RESULTS_DIR is unset.
+nt_record() { # <ok|fail> <id> <secs> <reason>
+  [ -n "${NT_RESULTS_DIR:-}" ] || return 0
+  printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" > "$NT_RESULTS_DIR/$2"
+}
+
+# First real TeX error from the logs, condensed to one line, so the summary can
+# say WHY a variant failed instead of only that it did.  Two wrinkles: with
+# -file-line-error the message starts "file:line: ", and TeX hard-wraps the log
+# at 79 columns -- so the next line is glued on before trimming, otherwise
+# "Missing file 'x.clo'" arrives as "Missing fi".  The file:line form is
+# preferred over "! ..." because the latter also matches math in error context.
+nt_reason() { # <log> <build.out>
+  local f msg
+  for f in "$@"; do
+    [ -f "$f" ] || continue
+    msg=$(awk '/^[^ ]*:[0-9]+: /{ l=$0; if ((getline n) > 0) l = l n; print l; exit }' "$f")
+    [ -n "$msg" ] || msg=$(awk '/^! /{ l=substr($0,3)
+                                       if ((getline n) > 0 && n !~ /^(l\.|$)/) l = l n
+                                       print l; exit }' "$f")
+    if [ -n "$msg" ]; then
+      printf '%s' "$msg" |
+        sed -e 's|^[^ ]*:[0-9]*: ||' -e 's/  */ /g' -e 's/ *$//' | cut -c1-70
+      return 0
+    fi
+  done
+  printf 'build error'
+}
+
 build_one() { # <school> <doctype> <lang> <engine> [shared-aux-dir]
   local school=$1 dt=$2 lg=$3 eng=$4
   local id engflag aux ovr ovrrel owns_aux jobname rc=0 t0 t1
@@ -183,7 +235,7 @@ build_one() { # <school> <doctype> <lang> <engine> [shared-aux-dir]
     lua) engflag=-pdflua ;;
     xe)  engflag=-pdfxe ;;
     pdf) engflag=-pdf ;;
-    *)   echo "✗ $id: unknown engine '$eng'" >&2; return 1 ;;
+    *)   printf '%s✗ %s: unknown engine '\''%s'\''%s\n' "$C_RED" "$id" "$eng" "$C_RESET" >&2; return 1 ;;
   esac
 
   # Inject \ntoverride through a FILE that latexmk tracks as a dependency,
@@ -210,7 +262,7 @@ build_one() { # <school> <doctype> <lang> <engine> [shared-aux-dir]
     return 0
   fi
 
-  printf '▶ %s …\n' "$id" >&2               # immediate "building" feedback
+  printf '%s▶ %s …%s\n' "$C_BLUE" "$id" "$C_RESET" >&2   # immediate "building" feedback
   mkdir -p "$aux"
   # (Re)write the tracked override.  FASTWRITES=0 also re-enables morewrites.
   {
@@ -244,17 +296,19 @@ build_one() { # <school> <doctype> <lang> <engine> [shared-aux-dir]
 
   if [ $rc -eq 0 ]; then
     cp -f "$aux/$jobname.pdf" "$OUTDIR/$id.pdf"
-    echo "✓ $id.pdf  ($((t1 - t0))s)"
+    printf '%s✓ %s.pdf%s  %s(%ss)%s\n' "$C_GREEN" "$id" "$C_RESET" "$C_YELLOW" "$((t1 - t0))" "$C_RESET"
     # Record this variant's build time for cost-based (LPT) unit scheduling.
     # One file per variant id => no contention across parallel workers.
     if [ -n "${NT_TIMINGS_DIR:-}" ]; then
       printf '%s\t%s\n' "$id" "$((t1 - t0))" > "$NT_TIMINGS_DIR/$id"
     fi
+    nt_record ok "$id" "$((t1 - t0))" ''
   else
     if [ -f "$aux/$id.glossary.out" ]; then
       cp -f "$aux/$id.glossary.out" "$OUTDIR/$id.glossary.out" 2>/dev/null || true
-      echo "✗ $id  ($((t1 - t0))s)  — glossary check failed:" >&2
+      printf '%s✗ %s  (%ss)  — glossary check failed:%s\n' "$C_RED" "$id" "$((t1 - t0))" "$C_RESET" >&2
       sed 's/^/    /' "$aux/$id.glossary.out" >&2
+      nt_record fail "$id" "$((t1 - t0))" 'glossary check'
       return 1
     fi
     # Save whatever diagnostics exist, and report ONLY what was actually saved
@@ -268,10 +322,11 @@ build_one() { # <school> <doctype> <lang> <engine> [shared-aux-dir]
       saved="${saved:+$saved and }$OUTDIR/$id.build.out"
     fi
     if [ -n "$saved" ]; then
-      echo "✗ $id  ($((t1 - t0))s)  — see $saved" >&2
+      printf '%s✗ %s  (%ss)  — see %s%s\n' "$C_RED" "$id" "$((t1 - t0))" "$saved" "$C_RESET" >&2
     else
-      echo "✗ $id  ($((t1 - t0))s)  — FAILED, and no log could be saved" >&2
+      printf '%s✗ %s  (%ss)  — FAILED, and no log could be saved%s\n' "$C_RED" "$id" "$((t1 - t0))" "$C_RESET" >&2
     fi
+    nt_record fail "$id" "$((t1 - t0))" "$(nt_reason "$OUTDIR/$id.log" "$OUTDIR/$id.build.out")"
   fi
   # In matrix mode, drop this variant's aux dir now that its PDF (or logs) are
   # in the output folder — keeps disk bounded across a large matrix.  A single
@@ -320,10 +375,12 @@ if [ "$ALL" = 1 ]; then
   # time (one file per id -> no locking), merged afterwards into a persistent
   # cost DB used to order units longest-first.
   NT_TIMINGS_DIR=$(mktemp -d)
+  NT_RESULTS_DIR=$(mktemp -d)
   COSTDB="$HERE/.matrix-costs.tsv"; touch "$COSTDB"
   export NT_STATUS="$STATUS" NT_EXTRA="$EXTRA" NT_OUTDIR="$OUTDIR" \
          NT_DRYRUN="$DRYRUN" NT_VERBOSE="$VERBOSE" NT_CLEAN_AUX=1 \
-         NT_WARM="${NT_WARM:-1}" NT_TIMINGS_DIR="$NT_TIMINGS_DIR" PATH
+         NT_WARM="${NT_WARM:-1}" NT_TIMINGS_DIR="$NT_TIMINGS_DIR" \
+         NT_RESULTS_DIR="$NT_RESULTS_DIR" PATH
 
   # Split the ordered variant list into one file per group×engine unit;
   # units run in parallel (up to JOBS), their contents strictly in order.
@@ -344,16 +401,24 @@ if [ "$ALL" = 1 ]; then
     rm -rf "$UNITS"; exit 1
   fi
   total=$(cat "$UNITS"/* | wc -l | tr -d ' ')
-  printf '▶ Matrix: building %s variant(s)%s with %s job(s)\n' \
-         "$total" "${FILTER:+ matching '$FILTER'}" "$JOBS" >&2
+  printf '%s%s▶ Matrix: building %s variant(s)%s with %s job(s)%s\n' \
+         "$C_BOLD" "$C_BLUE" "$total" "${FILTER:+ matching '$FILTER'}" "$JOBS" "$C_RESET" >&2
   printf '  output → %s\n' "$OUTDIR" >&2
-  # Dispatch longest-first (LPT): a unit's cost is the sum of its variants' last
-  # recorded build times (NT_COST_DEFAULT for unknowns).  An empty DB or ties
-  # fall back to group-id order.  This only changes WHEN units start, never the
-  # result.  FILENAME==db (not FNR==NR) is robust to an empty cost DB.
+  # Dispatch longest-first (LPT): a unit's cost is the sum of its variants'
+  # average of their last NT_COST_HISTORY recorded build times (a comma-list
+  # in the db's 2nd column; NT_COST_DEFAULT for variants with no history at
+  # all).  An empty DB or ties fall back to group-id order.  This only
+  # changes WHEN units start, never the result.  FILENAME==db (not FNR==NR)
+  # is robust to an empty cost DB.
   order_units() {
     awk -v def="${NT_COST_DEFAULT:-60}" -v db="$COSTDB" '
-      FILENAME == db { cost[$1] = $2; next }
+      FILENAME == db {
+        k = split($2, hist, ",")
+        sum = 0
+        for (i = 1; i <= k; i++) sum += hist[i]
+        cost[$1] = sum / k
+        next
+      }
       { id = $1; gsub(/\//, "-", id); id = id "-" $2 "-" $3 "-" $4
         tot[FILENAME] += (id in cost) ? cost[id] : def }
       END { for (p in tot) { n = split(p, x, "/"); printf "%d\t%s\n", tot[p], x[n] } }
@@ -361,15 +426,55 @@ if [ "$ALL" = 1 ]; then
   }
   rc=0
   order_units | xargs -P "$JOBS" -I{} "$0" -U "$UNITS/{}" || rc=$?
-  # Merge this run's times into the persistent cost DB (new values win).
+  # Merge this run's times into the persistent cost DB: append each variant's
+  # fresh timing to its existing comma-list history and keep only the last
+  # NT_COST_HISTORY entries (oldest dropped first), rather than replacing the
+  # single stored value outright. A variant with no prior history starts a
+  # fresh one-entry list.
   if [ "$DRYRUN" != 1 ] && ls "$NT_TIMINGS_DIR"/* >/dev/null 2>&1; then
     cat "$NT_TIMINGS_DIR"/* > "$NT_TIMINGS_DIR/.new"
-    awk -F'\t' 'FNR==NR { n[$1] = $2; next }
-                !($1 in n) { print }
-                END { for (k in n) print k "\t" n[k] }' \
-        "$NT_TIMINGS_DIR/.new" "$COSTDB" > "$COSTDB.tmp" && mv "$COSTDB.tmp" "$COSTDB"
+    awk -F'\t' -v keep="${NT_COST_HISTORY:-5}" '
+      FNR==NR { new[$1] = $2; next }
+      {
+        id = $1
+        if (id in new) {
+          full = $2 "," new[id]
+          cnt = split(full, arr, ",")
+          start = (cnt > keep) ? cnt - keep + 1 : 1
+          out = arr[start]
+          for (i = start + 1; i <= cnt; i++) out = out "," arr[i]
+          print id "\t" out
+          seen[id] = 1
+        } else {
+          print
+        }
+      }
+      END { for (id in new) if (!(id in seen)) print id "\t" new[id] }
+    ' "$NT_TIMINGS_DIR/.new" "$COSTDB" > "$COSTDB.tmp" && mv "$COSTDB.tmp" "$COSTDB"
   fi
-  rm -rf "$UNITS" "$NT_TIMINGS_DIR"
+  # ---- summary ---------------------------------------------------------------
+  # Counted from the recorded outcomes, not from the files in OUTDIR: a variant
+  # that dies before writing any log would otherwise vanish from the tally.
+  # One awk pass, no grep pipeline -- 'grep -c' with no match exits 1, and under
+  # 'set -o pipefail' that would abort the whole run right at the finish line.
+  built=0; failed=0
+  if ls "$NT_RESULTS_DIR"/* >/dev/null 2>&1; then
+    counts=$(awk -F'\t' '$1=="ok"{o++} $1=="fail"{f++} END{printf "%d %d", o+0, f+0}' \
+             "$NT_RESULTS_DIR"/*)
+    built=${counts% *}; failed=${counts#* }
+  fi
+  missing=$((total - built - failed))
+  printf '\n%s%s▶ Matrix summary: %s/%s built' "$C_BOLD" "$C_BLUE" "$built" "$total" >&2
+  if [ "$failed" -gt 0 ]; then printf ', %s failed' "$failed" >&2; fi
+  if [ "$missing" -gt 0 ]; then printf ', %s never ran' "$missing" >&2; fi
+  printf '%s\n' "$C_RESET" >&2
+  if [ "$failed" -gt 0 ]; then
+    printf '%s  failed:%s\n' "$C_RED" "$C_RESET" >&2
+    awk -F'\t' '$1=="fail" {printf "    %-38s %s\n", $2, $4}' "$NT_RESULTS_DIR"/* |
+      sort >&2
+    printf '  logs → %s\n' "$OUTDIR" >&2
+  fi
+  rm -rf "$UNITS" "$NT_TIMINGS_DIR" "$NT_RESULTS_DIR"
   exit $rc
 fi
 

@@ -48,6 +48,7 @@
 \SetBkmString*(abstract,pt)={Resumo}
 \SetBkmString*(listof,pt)={Lista de…}
 \SetBkmString*(glossaries,pt)={Glossários}
+\SetBkmString*(colophon,pt)={Colofão}
 
 
 %%=======================================================================
@@ -240,11 +241,25 @@
         permitir a sua cópia e distribuição para fins educacionais ou de investigação, não-comerciais, %
         desde que seja dado o devido crédito ao autor e ao editor.}
 
-\SetAcknowledgmentsString(pt)={% 
-        Este documento foi produzido com o sistema de composição \NTengineName~\@ntcite{latex-project} %
-        e o modelo %
-        \href{https://github.com/joaomlourenco/novathesis}{NOVAthesis} %
-        (v\novathesisversion)~\@ntcite{novathesis-manual}.}
+% Vazio: o crédito "produzido com o novathesis" está agora na página de
+% Colofão (\ntprintcolophon) em vez de aqui.
+\SetAcknowledgmentsString(pt)={}
+
+%%=======================================================================
+%% COLOFÃO
+%%=======================================================================
+
+\SetColophonString(pt)={%
+        Este documento foi composto com o \NTengineName{} e o modelo %
+        \href{https://github.com/joaomlourenco/novathesis}{\novathesis} %
+        (v\novathesisversion), com o tipo de letra %
+        \FontPrettyName}
+
+\SetColophonPdfaString(pt)={Esta é uma cópia arquivística em conformidade com o PDF/A-2b.}
+
+\SetColophonNotPdfaString(pt)={Esta \emph{não} é uma cópia arquivística em conformidade com o PDF/A.}
+
+\SetColophonBuildString(pt)={Compilação \@nt@colophonbuildid, \today.}
 
 
 %%=======================================================================

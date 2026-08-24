@@ -12,11 +12,7 @@
 %% ENGINE CHECK
 %%=======================================================================
 
-\ifxeorlua{}{%
-  \ClassError{novathesis}
-             {Font~style~"Palatino~Gyre~Pagella"~is~not~compatible~with~pdfLaTeX.~Please~use~XeLaTeX~or~LuaLaTeX}
-             {Please~use~XeLaTeX~or~LuaLaTeX}%
-}
+\NTRequireEngine{style/font=palatino-gyre-pagella}{lua,xe}
 
 
 %%=======================================================================
@@ -28,20 +24,24 @@
     Scale=1.0,
     Ligatures={Common,Discretionary,TeX}
   ]
+  \renewcommand*{\FontPrettyName}{TeX Gyre Pagella (Palatino)}
   \IfFontExistsTF{TeX Gyre Pagella Math}{
     \setmathfont{TeX Gyre Pagella Math}
+    \renewcommand*{\FontPrettyNameMath}{TeX Gyre Pagella Math}
   }{}
-  
+
   % Use TeX Gyre Heros for sans (pairs well with Pagella)
   \setsansfont{TeX Gyre Heros}[
     Scale=0.92,
     Ligatures=TeX
   ]
+  \renewcommand*{\FontPrettyNameSans}{TeX Gyre Heros}
   % Use TeX Gyre Cursor for mono
   \setmonofont{TeX Gyre Cursor}[
     Scale=0.95,
     Ligatures=TeX
   ]
+  \renewcommand*{\FontPrettyNameMono}{TeX Gyre Cursor}
 }{
   \PackageError{novathesis}{'TeX Gyre Pagella' font not found. Please select another font style in '0-Config/1_novathesis.tex'}{}
 }

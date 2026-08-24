@@ -20,23 +20,36 @@
     Ligatures = {TeX, Common},
     Scale     = 1.0,
   ]
-  
+  \renewcommand*{\FontPrettyName}{Times New Roman}
+
   \setsansfont{Helvetica}[
     Ligatures = TeX,
     Scale     = 0.95,
   ]
-  
+  \renewcommand*{\FontPrettyNameSans}{Helvetica}
+
   \setmonofont{Courier New}[
     Ligatures = TeX,
     Scale     = 0.90,
   ]
-  
+  \renewcommand*{\FontPrettyNameMono}{Courier New}
+
   % Math font
   \RequirePackage[utopia]{newtxmath}
+  \renewcommand*{\FontPrettyNameMath}{Utopia (newtxmath)}
 }
 {
   % pdfLaTeX version using packages
+  % amssymb FIRST: mathptmx redefines \hbar, and loading amssymb afterwards
+  % leaves it as a self-referential \protect\hbar that errors out at use.
+  % aidisclose.sty pulls amssymb in for \checkmark whenever the math font has
+  % not defined it -- which is exactly this branch, since mathptmx does not.
+  \RequirePackage{amssymb}
   \RequirePackage{mathptmx}        % Times Roman text font
+  \renewcommand*{\FontPrettyName}{Times New Roman}
+  \renewcommand*{\FontPrettyNameMath}{Times (mathptmx)}
   \RequirePackage[scaled=0.95]{helvet}  % Helvetica for sans-serif
+  \renewcommand*{\FontPrettyNameSans}{Helvetica}
   \RequirePackage{courier}         % Courier for monospace
+  \renewcommand*{\FontPrettyNameMono}{Courier}
 }

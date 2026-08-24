@@ -1,6 +1,40 @@
-# NOVAthesis Template Release Notes (v1.0.0 - v8.0.1)
+# novathesis Template Changelog (v1.0.0 - v8.2.0)
 
-This document summarizes the changes and improvements made to the NOVAthesis template from version **1.0.0** to the current version **8.0.1**.
+This document summarizes the changes and improvements made to the **nova**thesis template from version **1.0.0** to the current version **8.2.0**.
+
+---
+
+## Unreleased
+
+### What's new
+*   **New school: Humboldt-Universität zu Berlin** (`other/huberlin`) — cover, logo and accent colour modeled on the official title-page sample, supporting every doctype/language the template already knows. Select it with `\ntsetup{school=other/huberlin}`. Its cover is also the only one that prints the author's date/place of birth, via the new `\SetAuthorBirthDate*`/`\SetAuthorBirthPlace*` commands (both are no-ops on every other school).
+*   **`\ntsetup{print/appendixname=true}`** prefixes "Appendix"/"Annex" to the chapter number in appendix/annex chapter headings, not just in the PDF bookmarks (which already showed it). Each bundled chapter style places the label wherever its own layout wants it — e.g. before the vertical bar in `bar`, on its own line above the number in `ist`/`vz34` — so the option looks native to whichever style is active rather than just being tacked on.
+*   **`\ntsetup{listof/skip={...}}`** turns off individual "list of ..." entries (figures, tables, algorithms, listings, or any custom one) without commenting out their `\ntaddlistof` line in `0-Config/6_list_of.tex`. `glossaries` is accepted too, as a friendlier spelling of `\ntsetup{print/glossaries=false}`.
+*   **Chapter styles showcase**, a demo chapter (`3-BackMatter/app-chapter-styles-showcase.tex`, commented out by default in `0-Config/4_files.tex`) that cycles through every bundled chapter style and every standard memoir chapter style, one short chapter each, so they can be compared side by side before picking one with `style/chapter`.
+*   **`\AddValidDegree{key}{doctypes}` / `\ValidateDegree{u}{s}{d}`**, a `\AddValidProcessor`/`\ValidateLtxProcessor`-shaped pair of macros for school `.clo` files: a school (or one of its programme-specific sub-schools, like `nova/fct/cbbi` or `nova/fct/di-adc`) can now declare which doctypes it actually offers, and picking a doctype it doesn't errors clearly instead of silently producing a mismatched cover. `phd` also covers `phdplan`/`phdprop`, `msc` also covers `mscplan` (proposal/plan phases of the same degree, not separate programmes needing their own declaration), and `plain` is never restricted anywhere. Wired up for every school with a real per-doctype restriction in `.Build/schools.conf` (32 `.clo` files); schools with no declared restriction remain unrestricted, as before.
+
+### What was fixed
+*   **The `school` comment block in `0-Config/1_novathesis.tex` was stale**: `ulisboa/ff` (renamed to `ulisboa/fful` in v8.2.0) was never updated there, and several `nova/fct` colour variants (`blue`, `brown`, `green`, `plain`, `red`) and the bare `nova/itqb` id were missing entirely.
+
+## v8.2.0 (2026-08-21)
+
+### What's new
+*   **New school: ULisboa FFUL** (Faculdade de Farmácia da Universidade de Lisboa) — cover, spine, statement pages and the `modality` choice (`dissertation`, `report`, `project`), with its own citation style. Contributed by **Afonso Nóbrega** ([nobrega8](https://github.com/nobrega8)); select it with `\ntsetup{school=ulisboa/fful}`.
+*   **Oversized images are downsampled automatically** so a thesis can be kept under a submission size limit without editing the figures by hand.
+*   **The shipped example PDF is now the manual itself** (`novathesis-manual.pdf`), rather than one school's compiled cover — what you get is the documentation you actually want to read.
+
+### What was improved
+*   **`make matrix` ends with a summary:** how many variants built, how many failed, and each failure with its first TeX error, so a long regression run states its own result instead of leaving you to count PDFs against logs.
+*   **The release version comes from `nt-version.sty`** instead of `git describe`, so an archive built outside a git checkout still reports the right version.
+*   **README rewritten** around the project website: a description and quick links in the header, and the per-school tables trimmed now that [novathesis.org](https://novathesis.org) carries them.
+*   **The insignia matches the brand accent** (`#D94329`); two insignia files previously disagreed with each other.
+*   **The rebrand is complete.** The all-caps `NOVATHESIS` in every source file's header banner is now lowercase, finishing what v8.1.0 started.
+
+### What was fixed
+*   **`\hbar` (and other AMS symbols) broke under pdfLaTeX with `style/font=times`.** `mathptmx` redefines `\hbar`, and `amssymb` — pulled in for `\checkmark` whenever the math font does not provide one — was loaded after it, leaving a self-referential macro that errored at first use. `amssymb` now loads first. Only the pdfLaTeX engine was affected; the Xe/LuaLaTeX branch loads `newtxmath`, which defines `\checkmark`.
+*   **FFUL's school id is `ulisboa/fful` throughout.** It was briefly `ulisboa/ff`; the directory, the defaults file and every internal reference now agree, so the class no longer fails with *"Missing file … ulisboa-fful-defaults.clo"*. The old id was never part of a tagged release.
+*   uminho: the I3Bs school name read *"Research Institute 13Bs"* — digit one instead of the letter I.
+*   The class error message *"Cann not load the font"* is now *"Cannot load the font"*.
 
 ---
 
@@ -226,7 +260,7 @@ A leftover `.tex` entry file now **stops the build** with an error naming the ca
     *   Standardized option handling and configuration loading.
     *   Moved school-specific configurations to `*-defaults.ldf` files.
 *   **File Structure:**
-    *   Restructured directories (`0-Config`, `1-FrontMatter`, `NOVAthesisFiles`, etc.).
+    *   Restructured directories (`0-Config`, `1-FrontMatter`, `novathesisFiles`, etc.).
     *   Moved style files to `StyFiles`.
     *   Cleaned up and standardized file naming conventions.
 
@@ -259,7 +293,7 @@ A leftover `.tex` entry file now **stops the build** with an error naming the ca
     *   Replaced the options system with a command `\ntsetup{...}`.
     *   Improved file loading and hook system.
 *   **Visuals:**
-    *   New logo for NOVAthesis.
+    *   New logo for **nova**thesis.
     *   Updated school logos to vector formats where possible.
 
 ---

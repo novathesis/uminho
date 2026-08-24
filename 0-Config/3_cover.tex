@@ -104,36 +104,6 @@
 
 
 %-------------------------------------------------------------
-% Sponsors
-%
-%     \ntsponsors(<order>,<type>,<lang>){name}
-%.............................................................
-%
-% <order>:      -> 1, 2, 3, ...
-%
-% <type>:  text -> Some text (possibly inside a '\parbox' command)
-%          logo -> A proper '\includegraphics' command
-%
-% <lang>:       -> cat (catalan), cz (czech), de (german), dk (danish), en (english), 
-%                  es (spanish), fr (french), gr (greek), it (italian), nl (dutch), 
-%                  pl (polish), pt (portuguese), sk (slovak), uk (ukrainian)
-%
-% Add more lines for other languages
-%-------------------------------------------------------------
-% \ntsponsors(1,logo,en){\includegraphics[height=1.5cm]{republica_portuguesa_CTES}}
-% \ntsponsors(2,logo,en){\includegraphics[height=1.5cm]{FCT_MEC_logo_positive}}
-% \ntsponsors(1,text,en){Funding Agency}
-%
-% \ntsponsors(1,logo,pt){\includegraphics[height=1.5cm]{republica_portuguesa_CTES}}
-% \ntsponsors(2,logo,pt){\includegraphics[height=1.5cm]{FCT_MEC_logo_positive}}
-% \ntsponsors(1,text,pt){Entidade Financiadora}
-
-
-
-
-
-
-%-------------------------------------------------------------
 % Author name
 %
 %     \ntauthorname(<gender>){Full Name}{First Last}
@@ -143,6 +113,28 @@
 %           f -> female
 %-------------------------------------------------------------
 \ntauthorname(m){John Very Longname Doe}{John Doe}
+
+
+
+%-------------------------------------------------------------
+% Author's date/place of birth -- OTHER/HUBERLIN ONLY
+%
+%     \SetAuthorBirthDate*()={<ISO date>}
+%     \SetAuthorBirthPlace*(<lang>)={<place>}
+%.............................................................
+%
+% Only the Humboldt-Universität zu Berlin cover (school=other/huberlin)
+% prints this ("geb. am ... in ..."). Leave both commented out for every
+% other school. Notice that the commands exist for any school (see nt-core.sty)
+% but only that school's cover renders them, so setting them elsewhere is
+% simply ignored.
+%
+% \SetAuthorBirthDate*()={1998-03-03}   % ISO format; no language key
+% \SetAuthorBirthPlace*(de)={Berlin}    % one line per cover language you use
+% \SetAuthorBirthPlace*(en)={Berlin}
+%-------------------------------------------------------------
+% \SetAuthorBirthDate*()={1998-03-03}   % ISO format; no language key
+% \SetAuthorBirthPlace*(de)={Berlin}    % one line per cover language you use
 
 
 
@@ -178,6 +170,8 @@
 % You may use "\\" to force line breaks
 %-------------------------------------------------------------
 
+
+
 %-------------------------------------------------------------------
 % Relevant dates
 %     \ntdate(<type>){<date>}
@@ -197,7 +191,8 @@
 %-------------------------------------------------------------
 % Advisers' names
 %
-%     \ntaddperson{adviser}(<role>,<gender>){Full Name, Position, and School}
+%     \ntaddperson{adviser}(<role>,<gender>){Full Name}
+%       [title=..., position=..., institution=...]
 %.............................................................
 %
 %   <role>: a  -> adviser
@@ -208,20 +203,48 @@
 % <gender>: m -> male
 %           f -> female
 %
+% title, position, and institution are all optional -- omit any (or all)
+% of them, or the whole bracket, if not needed.
+%
+% Legacy syntax (still accepted, but deprecated -- only the first two
+% commas are significant, so a comma-containing institution stays whole):
+%     \ntaddperson{adviser}(<role>,<gender>){Full Name, Position, and School}
+%
 % You may use "\\" to force line breaks
 %-------------------------------------------------------------
-% Advisers(s)
-\ntaddperson{adviser}(a,f){Mary Doe Adviser Name, Full Professor, NOVA University Lisbon}
-% Co-advisers(s)
-\ntaddperson{adviser}(c,m){John Doe Co-Adviser Name, Associate Professor, NOVA University Lisbon}
-\ntaddperson{adviser}(c,f){John Doe other Co-Adviser Name, Full Professor, NOVA University Lisbon}
+% other/huberlin's cover format ("<akad. Grade/Vorname/Name>") expects an
+% academic-degree title prefixed to the name; every other school's demo
+% preview stays exactly as it was (no title). The [...] bracket is read
+% unexpanded by \ntaddperson (it's passed straight into \keys_set:nn), so
+% a macro placeholder for "title=...," would never expand there -- the
+% two branches below spell out the full bracket content literally instead.
+\ifoptionequal{/novathesis/schoolgiven}{other/huberlin}{%
+  % Advisers(s)
+  \ntaddperson{adviser}(a,f){Mary Doe Adviser Name}
+    [title=Prof.\ Dr., position=Full Professor, institution=NOVA University Lisbon]
+  % Co-advisers(s)
+  \ntaddperson{adviser}(c,m){John Doe Co-Adviser Name}
+    [title=Prof.\ Dr., position=Associate Professor, institution=NOVA University Lisbon]
+  \ntaddperson{adviser}(c,f){John Doe other Co-Adviser Name}
+    [title=Prof.\ Dr., position=Full Professor, institution=NOVA University Lisbon]
+}{%
+  % Advisers(s)
+  \ntaddperson{adviser}(a,f){Mary Doe Adviser Name}
+    [position=Full Professor, institution=NOVA University Lisbon]
+  % Co-advisers(s)
+  \ntaddperson{adviser}(c,m){John Doe Co-Adviser Name}
+    [position=Associate Professor, institution=NOVA University Lisbon]
+  \ntaddperson{adviser}(c,f){John Doe other Co-Adviser Name}
+    [position=Full Professor, institution=NOVA University Lisbon]
+}%
 
 
 
 %-------------------------------------------------------------
 % Advisers' names
 %
-%     \ntaddperson{adviser}(<role>,<gender>){Full Name, Position, and School}
+%     \ntaddperson{committee}(<role>,<gender>){Full Name}
+%       [title=..., position=..., institution=...]
 %.............................................................
 %
 %   <role>: c  -> committee chair (presidente do júri)
@@ -234,13 +257,51 @@
 % <gender>: m -> male
 %           f -> female
 %
+% title, position, and institution are all optional -- omit any (or all)
+% of them, or the whole bracket, if not needed.
+%
+% Legacy syntax (still accepted, but deprecated -- only the first two
+% commas are significant, so a comma-containing institution stays whole):
+%     \ntaddperson{committee}(<role>,<gender>){Full Name, Position, and School}
+%
 % You may use "\\" to force line breaks
 %-------------------------------------------------------------
-\ntaddperson{committee}(c,m){Committee chairperson's Name, Full Professor, NOVA School of Science and technology}
-\ntaddperson{committee}(r,m){Rapporteur's Name, Associate Professor, University of Somewhere}
-% \ntaddperson{committee}(r,m){Another Rapporteur's Name, Assistant Professor, Another University}
-% \ntaddperson{committee}(a,m){Adviser's Name (if present in the jury), Associate Professor, NOVA School of Science and technology}
-% \ntaddperson{committee}(ca,m){Co-Adviser's Name (if present in the jury), Associate Professor, Some University}
-\ntaddperson{committee}(m,f){Another Committee Member, Full Professor, Another University}
-\ntaddperson{committee}(m,f){Yet Another Member of the Committee, Assistant Professor, Another University}
+\ntaddperson{committee}(c,m){Committee chairperson's Name}
+  [position=Full Professor, institution=NOVA School of Science and technology]
+\ntaddperson{committee}(r,m){Rapporteur's Name}
+  [position=Associate Professor, institution=University of Somewhere]
+% \ntaddperson{committee}(r,m){Another Rapporteur's Name}[position=Assistant Professor, institution=Another University]
+% \ntaddperson{committee}(a,m){Adviser's Name (if present in the jury)}[position=Associate Professor, institution=NOVA School of Science and technology]
+% \ntaddperson{committee}(ca,m){Co-Adviser's Name (if present in the jury)}[position=Associate Professor, institution=Some University]
+\ntaddperson{committee}(m,f){Another Committee Member}
+  [position=Full Professor, institution=Another University]
+\ntaddperson{committee}(m,f){Yet Another Member of the Committee}
+  [position=Assistant Professor, institution=Another University]
 % \ntaddperson{committee}(g,m){Guest Member of the Committee, Position, University}
+
+
+
+%-------------------------------------------------------------
+% Sponsors
+%
+%     \ntsponsors(<order>,<type>,<lang>){name}
+%.............................................................
+%
+% <order>:      -> 1, 2, 3, ...
+%
+% <type>:  text -> Some text (possibly inside a '\parbox' command)
+%          logo -> A proper '\includegraphics' command
+%
+% <lang>:       -> cat (catalan), cz (czech), de (german), dk (danish), en (english), 
+%                  es (spanish), fr (french), gr (greek), it (italian), nl (dutch), 
+%                  pl (polish), pt (portuguese), sk (slovak), uk (ukrainian)
+%
+% Add more lines for other languages
+%-------------------------------------------------------------
+% \ntsponsors(1,logo,en){\includegraphics[height=1.5cm]{republica_portuguesa_CTES}}
+% \ntsponsors(2,logo,en){\includegraphics[height=1.5cm]{FCT_MEC_logo_positive}}
+% \ntsponsors(1,text,en){Funding Agency}
+%
+% \ntsponsors(1,logo,pt){\includegraphics[height=1.5cm]{republica_portuguesa_CTES}}
+% \ntsponsors(2,logo,pt){\includegraphics[height=1.5cm]{FCT_MEC_logo_positive}}
+% \ntsponsors(1,text,pt){Entidade Financiadora}

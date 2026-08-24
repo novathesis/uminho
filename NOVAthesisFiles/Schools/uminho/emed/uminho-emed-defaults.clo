@@ -13,6 +13,11 @@
 \typeout{NT FILE uminho/emed/schl-defaults.clo}%
 
 
+% Only XeLaTeX/LuaLaTeX are accepted (uses an OpenType-only font)
+\AddValidProcessor{uminho/emed}{lua,xe}
+\AddValidDegree{uminho/emed}{phd,msc}
+
+
 %%=======================================================================
 %% STRINGS (UNIVERSITY & SCHOOL)
 %%=======================================================================

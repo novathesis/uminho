@@ -1,20 +1,20 @@
 %!TEX root = ../template.tex
 
 %% ----------------------------------------------------------------------------
-%%  NOVATHESIS — 2-MainMatter/chapter-manual.tex
+%%  novathesis — 2-MainMatter/chapter-manual.tex
 %% ----------------------------------------------------------------------------
 %%
-%% Version 8.0.2 (2026-08-07)
+%% Version 8.2.0 (2026-08-21)
 %% Copyright (C) 2004-26 by João M. Lourenço <joao.lourenco@fct.unl.pt>
 %%
 %% User's manual chapter: complete guide to configuring and using the
-%% NOVAthesis template.
+%% novathesis template.
 %%
 %% ----------------------------------------------------------------------------
 
 \typeout{NT FILE 2-MainMatter/chapter-manual.tex}%
 
-\chapter{NOVAthesis Template \emph{User's Manual}}
+\chapter{\texorpdfstring{\textbf{nova}thesis}{novathesis} Template \emph{User's Manual}}
 \label{cha:users_manual}
 
 \glsresetall
@@ -68,15 +68,16 @@ the \emph{\hologo{MiKTeX} Console} before compiling the template for the first t
 schools because it handles Unicode fonts natively.  \ntindex[fonts!]{XeLaTeX} is a close
 alternative.  \hologo{pdfLaTeX} works but cannot load OpenType/TrueType fonts.
 
-\paragraph{School-specific fonts.}  Some Schools or font-styles require fonts not available in \hologo{LaTeX}.  In normal conditions, they will be downloaded automatically.  However, if they are not, you may download the necessary fonts from \url{https://github.com/joaomlourenco/novathesis-extras/tree/main/Fonts}, unzip (if necessary), and copy the \verb!*.ttf! files to \verb!NOVAthesisFiles/FontStyles/Fonts/!.
+\paragraph{School-specific fonts.}  Some Schools or font-styles require fonts not available in \hologo{LaTeX}.  In normal conditions, they will be downloaded automatically.  However, if they are not, you may download the necessary fonts from \url{https://github.com/joaomlourenco/novathesis-extras/tree/main/Fonts}, unzip (if necessary), and copy the \verb!*.ttf! files to \verb!novathesisFiles/FontStyles/Fonts/!.
 
 \begin{warningbox}[title={Security: compiling runs external programs (\texttt{-\/-shell-escape})}]
   \label{box:shell-escape-security}
   \novathesis{} compiles with \texttt{-{}-shell-escape} \emph{enabled},
   because several features run external programs during the build:
-  \texttt{minted} calls Pygments to highlight source code, and selecting a
+  \texttt{minted} calls Pygments to highlight source code, selecting a
   bundled proprietary font (Calibri, Arial, \ldots) downloads it over the
-  network.  (Glossaries no longer need shell-escape: since 8.0 they are built
+  network, and printing the SDG icons (Section~\ref{sub:sdgs}) downloads them
+  the same way.  (Glossaries no longer need shell-escape: since 8.0 they are built
   by \texttt{bib2gls}, which \texttt{latexmk} runs directly.)  With shell-escape, \textbf{compiling a document can run commands
   on your computer with your own user privileges} — there is no sandbox.
 
@@ -155,7 +156,7 @@ engine.
     \verb!3-BackMatter/!        & Appendices and annexes              & \textbf{edit} \\
     \verb!4-Bibliography/!      & \texttt{.bib} database files        & \textbf{edit} \\
     \verb!5-Figures/!           & Images                              & \textbf{edit} \\
-    \verb!NOVAthesisFiles/!     & Template internals (styles, schools, strings) & do not edit \\
+    \verb!novathesisFiles/!     & Template internals (styles, schools, strings) & do not edit \\
     \verb!Scripts/!             & Utility scripts                     & do not edit \\
     \verb!.Build/!              & Maintainer build tools (\texttt{nt-variant.sh}) & do not edit \\
     \bottomrule
@@ -370,6 +371,14 @@ generated PDF.  Many have defaults that vary with \texttt{school} and \texttt{do
 \ntsetup{print/copyright=false}
 \end{latexcode}
 
+  \item[\texttt{print/appendixname}] Prefix ``Appendix''/``Annex'' to the
+    chapter number in appendix/annex headings too (the PDF bookmarks
+    already show it -- see \S\ref{sub:appendices}).
+    Default: \texttt{false}.
+\begin{latexcode}
+\ntsetup{print/appendixname=true}
+\end{latexcode}
+
   \item[\texttt{spine/layout}] Print the book spine.
     Default: \texttt{false} for \texttt{working} and \texttt{provisional};
     \texttt{trim} (printed) for \texttt{final}.
@@ -397,6 +406,16 @@ generated PDF.  Many have defaults that vary with \texttt{school} and \texttt{do
 \ntsetup{print/webography=Webography}
 \end{latexcode}
 
+  \item[\texttt{cite/template}] Add the reference to the \novathesis{} template
+    to your document's bibliography.  Default: \texttt{true}.
+
+    \novathesis{} is developed and maintained for free, and citations are the
+    only currency in which that work is repaid.  If you would rather not
+    include the reference, simply turn the option off --- no hard feelings.
+\begin{latexcode}
+\ntsetup{cite/template=false}
+\end{latexcode}
+
   \item[\texttt{print/aidisclosure}] Print an AI use disclosure statement.
     Default: \texttt{aidisclose} (uses \verb!1-FrontMatter/7-aidisclose.tex!
     with the \texttt{aidisclose} package).
@@ -421,6 +440,18 @@ generated PDF.  Many have defaults that vary with \texttt{school} and \texttt{do
 \ntsetup{print/glossaries=frontmatter}  % default
 \ntsetup{print/glossaries=backmatter}
 \ntsetup{print/glossaries=false}        % do not print
+\end{latexcode}
+
+  \item[\texttt{listof/skip}] Skip individual ``list of \ldots'' entries
+    (\texttt{listoffigures}, \texttt{listoftables}, \texttt{listofalgorithms},
+    \texttt{listoflistings}, or any custom name \verb!\ntaddlistof! registers
+    in \verb!0-Config/6_list_of.tex!) without commenting out their
+    \verb!\ntaddlistof! line. \texttt{glossaries} is also accepted here --
+    it is just a friendlier spelling of \texttt{print/glossaries=false},
+    since glossaries aren't registered via \verb!\ntaddlistof! at all.
+    Default: empty (nothing skipped).
+\begin{latexcode}
+\ntsetup{listof/skip={listoftables,listofalgorithms,glossaries}}
 \end{latexcode}
 
   \item[\texttt{abstract/title}] Print the work title with each abstract,
@@ -471,7 +502,7 @@ generated PDF.  Many have defaults that vary with \texttt{school} and \texttt{do
 \label{sub:sdgs}
 %%-----------------------------------------------------------------------
 
-NOVAthesis can print the United Nation's \ntindex[configuration!print/sdgs]{SDG} icons at the bottom of the abstract page(s).  All three options
+\novathesis\ can print the United Nation's \ntindex[configuration!print/sdgs]{SDG} icons at the bottom of the abstract page(s).  All three options
 below should be set together:
 \begin{latexcode}
 \ntsetup{print/sdgs/list={3,7,13}}    % SDG numbers to print
@@ -481,38 +512,74 @@ below should be set together:
 \ntsetup{print/sdgs/vspace=4mm}       % vertical gap below icons
 \end{latexcode}
 
-The \texttt{type} option selects the icon variant: \texttt{inverted} (colour on white background), \texttt{normal} (colour on coloured background), or \texttt{mono} (monochrome on white background).  Table~\ref{tab:sdgs}\footnote{Table~\ref{tab:sdgs} is intentionally in a page with differente dimensions (corresponding to a rotated page) to illustrate the funcitonality of the \texttt{stocksize} package.} lists all 17 SDGs with their icon (\texttt{inverted} variant), title, and goal description.
+The \texttt{type} option selects the icon variant: \texttt{inverted} (colour on white background), \texttt{normal} (colour on coloured background), or \texttt{mono} (monochrome on white background).  Table~\ref{tab:sdgs}\footnote{Table~\ref{tab:sdgs} is intentionally in a page with differente dimensions (corresponding to a rotated page) to illustrate the funcitonality of the \texttt{stocksize} package.} lists all 17 SDGs with their icon in the three variants, title, and goal description.
+
+\paragraph{Automatic download of the SDG icons.}  The \ntindex[configuration!print/sdgs!automatic download]{SDG} icons are \emph{not} shipped with the template.  Just like the school-specific fonts (Section~\ref{sub:local_install}), they are downloaded automatically when needed from \url{https://github.com/joaomlourenco/SDGs} into \verb!novathesisFiles/Images/sdg-<lang>/!, and reused from there in later compilations, so the download happens only once.  Only what is really necessary is fetched, namely the icons listed in \texttt{print/sdgs/list}, in the variant chosen with \texttt{print/sdgs/type}, and in the language of each abstract.
+
+At the time of writing the icons exist upstream in English, Portuguese, Spanish, French and German.  For an abstract written in any other language, the English icons are used instead, so the English set is always downloaded as a fallback.  No list of languages is hardwired in the template: the upstream folder is simply the language code in upper case (\texttt{pt}~$\rightarrow$~\texttt{PT}, \ldots), so icons for a new language added upstream are used automatically, with no change to \novathesis{}, as long as the new folder is named after the corresponding language code.
+
+As for the fonts, this needs \texttt{-{}-shell-escape} (see the warning box in page~\pageref{box:shell-escape-security}) and a network connection.  A language with no icons upstream simply produces one warning per compilation and falls back to English.  If the download fails, you may get the files by hand from the address above and copy them into that folder.
+
+% This table shows all 17 icons directly (not through \ntprintsdgs), so make
+% sure they are locally cached regardless of the user's own print/sdgs/list.
+% The option override is local to this group; the user's own setting (if any)
+% is restored automatically at \endgroup.
+\begingroup
+  \optionsalso{/novathesis/print/sdgs/list={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17}}
+  \ntchecksdgs{en}{n}
+  \ntchecksdgs{en}{i}
+  \ntchecksdgs{en}{m}
+\endgroup
 
 \newstocksize{layoutsize={297mm,210mm},keepmargins}
+% Uniform row height: \sdgstrut is an empty, zero-width box of exactly
+% \sdgrowheight, so every row is that tall, slightly taller than the icon.
+% It must be \vcenter'ed (not a plain \rule): graphbox's "align=c" centres the
+% icon on the *math axis*, and m{} columns centre their text the same way, so
+% a baseline-symmetric strut would sit lower than the icon and push it against
+% the top of the row.  \vcenter puts the strut on the same axis as both.
+% (A row whose text needs more lines than fit in \sdgrowheight will still grow.)
+\newlength{\sdgiconheight}\setlength{\sdgiconheight}{1.15cm}
+\newlength{\sdgrowheight}\setlength{\sdgrowheight}{1.35cm}
+\newcommand{\sdgstrut}{$\vcenter to\sdgrowheight{}$}
 \begin{center}
-{\small\rowcolors{2}{rowgray}{white}%
+\small\rowcolors{2}{rowgray}{white}%
 \renewcommand{\arraystretch}{1.4}%
-\begin{longtable}{@{}cp{\dimexpr0.32\linewidth}p{\dimexpr0.52\linewidth}@{}}
-  \caption{The 17 UN Sustainable Development Goals (SDGs) — \texttt{inverted} icon variant.}
+\newcommand{\inclsdg}[2]{\sdgstrut\includegraphics[height=\sdgiconheight,align=c]{\DIRIMAGES/sdg-en/#1-#2}}
+% NOTE: this must be 'xltabular', not 'tabularx'.  The template loads
+% glossary-xltabular -> xltabular, and xltabular explicitly restores the plain
+% (single-page, no-\caption) tabularx, providing the longtable-backed version
+% under the name 'xltabular' instead.  Only xltabular supports \caption,
+% \label, \endfirsthead and \endhead, and breaks across pages, which this
+% 17-row table needs.  \tabularxcolumn=m centres the X column vertically.
+\renewcommand{\tabularxcolumn}[1]{m{#1}}
+\begin{xltabular}{\textwidth}{@{}ccc>{\raggedright\arraybackslash}m{0.26\textwidth}X@{}}
+  \rowcolor{white}
+  \caption{The 17 UN Sustainable Development Goals (SDGs), in the \texttt{normal}, \texttt{inverted} and \texttt{mono} icon variants.}
   \label{tab:sdgs}\\
   \rowcolor{headgray}
-  \textbf{Icon} & \textbf{Title} & \textbf{Goal} \\\endfirsthead
-  \rowcolor{headgray}
-  \textbf{Icon} & \textbf{Title} & \textbf{Goal} \\\endhead
+  \textbf{Normal} & \textbf{Inverted} & \textbf{Mono} & \textbf{Title} & \textbf{Goal} \\\endfirsthead
+  \rowcolor{headgray}%
+  \textbf{Normal} & \textbf{Inverted} & \textbf{Mono} & \textbf{Title} & \textbf{Goal} \\\endhead
   %
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/1-i}  & \textbf{1 — No Poverty}                             & End poverty in all its forms everywhere. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/2-i}  & \textbf{2 — Zero Hunger}                            & End hunger, achieve food security, improve nutrition, and promote sustainable agriculture. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/3-i}  & \textbf{3 — Good Health and Well-being}              & Ensure healthy lives and promote well-being for all at all ages. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/4-i}  & \textbf{4 — Quality Education}                      & Ensure inclusive and equitable quality education and promote lifelong learning opportunities. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/5-i}  & \textbf{5 — Gender Equality}                        & Achieve gender equality and empower all women and girls. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/6-i}  & \textbf{6 — Clean Water and Sanitation}              & Ensure availability and sustainable management of water and sanitation for all. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/7-i}  & \textbf{7 — Affordable and Clean Energy}             & Ensure access to affordable, reliable, sustainable, and modern energy for all. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/8-i}  & \textbf{8 — Decent Work and Economic Growth}         & Promote sustained, inclusive, and sustainable economic growth, full employment, and decent work. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/9-i}  & \textbf{9 — Industry, Innovation and Infrastructure} & Build resilient infrastructure, promote inclusive and sustainable industrialization, and foster innovation. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/10-i} & \textbf{10 — Reduced Inequalities}                  & Reduce inequality within and among countries. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/11-i} & \textbf{11 — Sustainable Cities and Communities}     & Make cities and human settlements inclusive, safe, resilient, and sustainable. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/12-i} & \textbf{12 — Responsible Consumption and Production} & Ensure sustainable consumption and production patterns. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/13-i} & \textbf{13 — Climate Action}                        & Take urgent action to combat climate change and its impacts. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/14-i} & \textbf{14 — Life Below Water}                      & Conserve and sustainably use the oceans, seas, and marine resources. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/15-i} & \textbf{15 — Life on Land}                          & Protect, restore, and promote sustainable use of terrestrial ecosystems and halt biodiversity loss. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/16-i} & \textbf{16 — Peace, Justice and Strong Institutions} & Promote peaceful and inclusive societies, provide access to justice, and build accountable institutions. \\
-  \includegraphics[width=1.15cm,align=c]{\DIRIMAGES/sdg-en/17-i} & \textbf{17 — Partnerships for the Goals}            & Strengthen the means of implementation and revitalize the global partnership for sustainable development. \\
-\end{longtable}}
+  \inclsdg{1}{n}  & \inclsdg{1}{i}  & \inclsdg{1}{m}  & \textbf{1 — No Poverty}                             & End poverty in all its forms everywhere. \\
+  \inclsdg{2}{n}  & \inclsdg{2}{i}  & \inclsdg{2}{m}  & \textbf{2 — Zero Hunger}                            & End hunger, achieve food security, improve nutrition, and promote sustainable agriculture. \\
+  \inclsdg{3}{n}  & \inclsdg{3}{i}  & \inclsdg{3}{m}  & \textbf{3 — Good Health and Well-being}              & Ensure healthy lives and promote well-being for all at all ages. \\
+  \inclsdg{4}{n}  & \inclsdg{4}{i}  & \inclsdg{4}{m}  & \textbf{4 — Quality Education}                      & Ensure inclusive and equitable quality education and promote lifelong learning opportunities. \\
+  \inclsdg{5}{n}  & \inclsdg{5}{i}  & \inclsdg{5}{m}  & \textbf{5 — Gender Equality}                        & Achieve gender equality and empower all women and girls. \\
+  \inclsdg{6}{n}  & \inclsdg{6}{i}  & \inclsdg{6}{m}  & \textbf{6 — Clean Water and Sanitation}              & Ensure availability and sustainable management of water and sanitation for all. \\
+  \inclsdg{7}{n}  & \inclsdg{7}{i}  & \inclsdg{7}{m}  & \textbf{7 — Affordable and Clean Energy}             & Ensure access to affordable, reliable, sustainable, and modern energy for all. \\
+  \inclsdg{8}{n}  & \inclsdg{8}{i}  & \inclsdg{8}{m}  & \textbf{8 — Decent Work and Economic Growth}         & Promote sustained, inclusive, and sustainable economic growth, full employment, and decent work. \\\pagebreak
+  \inclsdg{9}{n}  & \inclsdg{9}{i}  & \inclsdg{9}{m}  & \textbf{9 — Industry, Innovation and Infrastructure} & Build resilient infrastructure, promote inclusive and sustainable industrialization, and foster innovation. \\
+  \inclsdg{10}{n} & \inclsdg{10}{i} & \inclsdg{10}{m} & \textbf{10 — Reduced Inequalities}                  & Reduce inequality within and among countries. \\
+  \inclsdg{11}{n} & \inclsdg{11}{i} & \inclsdg{11}{m} & \textbf{11 — Sustainable Cities and Communities}     & Make cities and human settlements inclusive, safe, resilient, and sustainable. \\
+  \inclsdg{12}{n} & \inclsdg{12}{i} & \inclsdg{12}{m} & \textbf{12 — Responsible Consumption and Production} & Ensure sustainable consumption and production patterns. \\
+  \inclsdg{13}{n} & \inclsdg{13}{i} & \inclsdg{13}{m} & \textbf{13 — Climate Action}                        & Take urgent action to combat climate change and its impacts. \\
+  \inclsdg{14}{n} & \inclsdg{14}{i} & \inclsdg{14}{m} & \textbf{14 — Life Below Water}                      & Conserve and sustainably use the oceans, seas, and marine resources. \\
+  \inclsdg{15}{n} & \inclsdg{15}{i} & \inclsdg{15}{m} & \textbf{15 — Life on Land}                          & Protect, restore, and promote sustainable use of terrestrial ecosystems and halt biodiversity loss. \\
+  \inclsdg{16}{n} & \inclsdg{16}{i} & \inclsdg{16}{m} & \textbf{16 — Peace, Justice and Strong Institutions} & Promote peaceful and inclusive societies, provide access to justice, and build accountable institutions. \\
+  \inclsdg{17}{n} & \inclsdg{17}{i} & \inclsdg{17}{m} & \textbf{17 — Partnerships for the Goals}            & Strengthen the means of implementation and revitalize the global partnership for sustainable development. \\
+\end{xltabular}
 \end{center}
 \restorestocksize
 
@@ -572,6 +639,12 @@ label in the margin.
 % Glossary column widths
 \ntsetup{glossaries/layout={>{\raggedright}p{0.2\textwidth}X}}
 
+% Show letter-group headings before each alphabetic group (default: none)
+\ntsetup{glossaries/groupheadings={acronym,symbols}}
+
+% Rename a glossary's printed/TOC title (default: unchanged)
+\ntsetup{glossaries/titles={symbols=List of Symbols}}
+
 % Include the Table of Contents as an entry in itself (default: true)
 \ntsetup{tocintoc=false}
 
@@ -581,6 +654,41 @@ label in the margin.
 % Debug helpers (print grid and bounding boxes on cover/spine)
 \ntsetup{debug={cover,spine}}
 \end{latexcode}
+
+\paragraph{Letter-group headings.} Glossary, acronym, and symbols lists are
+always alphabetically grouped by first letter, but by default no heading is
+printed before each group. To show a bold heading (\enquote{A},
+\enquote{B}, \dots) before each letter group, opt in per glossary type with
+\texttt{glossaries/groupheadings}:
+\begin{latexcode}
+% Show group headings only for the acronyms and symbols lists
+\ntsetup{glossaries/groupheadings={acronym,symbols}}
+\end{latexcode}
+Valid type names are \texttt{glossary}, \texttt{acronym}, \texttt{symbols},
+or any custom type registered with
+\latexinline{\ntaddfile{glossaries}[<type>]{...}}. More than one type needs
+the extra pair of braces shown above, to protect the comma from
+\latexinline{\ntsetup}'s own top-level comma splitting; a single type does
+not, e.g.\ \latexinline{\ntsetup{glossaries/groupheadings=acronym}}.
+
+\paragraph{Renaming a glossary's title.} To rename the printed (and
+table-of-contents) title of a glossary type -- for example \enquote{Symbols}
+to \enquote{List of Symbols} -- use \texttt{glossaries/titles} with a
+comma-separated list of \texttt{type=Title} pairs:
+\begin{latexcode}
+\ntsetup{glossaries/titles={symbols=List of Symbols,
+                            acronym=List of Abbreviations}}
+\end{latexcode}
+As with \texttt{glossaries/groupheadings}, wrap multiple pairs in one extra
+pair of braces (a single pair does not need it). Neither the type name nor
+the title text may contain a literal comma or equals sign -- the parser is a
+simple split, not a full tokenizer.
+
+\paragraph{The un-typed \enquote{main} glossary.} Internally,
+\texttt{bib2gls} calls the un-typed glossary you feed via
+\latexinline{\ntaddfile{glossaries}[glossary]{...}} \texttt{main}, not
+\texttt{glossary}. Both options above accept \texttt{glossary} as an alias
+for it, so you never need to write \texttt{main} yourself.
 
 
 %%=======================================================================
@@ -644,6 +752,15 @@ For the author's previous degree (printed on some covers):
 \ntauthordegree(pt){Mestrado em Engenharia Informática}
 \end{latexcode}
 
+For the author's date/place of birth (\texttt{school=other/huberlin} only --
+its cover prints \emph{``geb. am \ldots{} in \ldots{}''}; every other
+school's cover simply ignores these):
+\begin{latexcode}
+\SetAuthorBirthDate*()={1998-03-03}   % ISO format; no language key
+\SetAuthorBirthPlace*(de)={Berlin}    % one line per cover language you use
+\SetAuthorBirthPlace*(en)={Berlin}
+\end{latexcode}
+
 %%-----------------------------------------------------------------------
 \subsection{Advisers}
 \label{sub:advisers}
@@ -651,13 +768,19 @@ For the author's previous degree (printed on some covers):
 
 \begin{latexcode}
 % Principal adviser
-\ntaddperson{adviser}(a,f){Mary Adviser, Full Professor, NOVA University Lisbon}
+\ntaddperson{adviser}(a,f){Mary Adviser}
+      [position=Full Professor, institution=NOVA University Lisbon]
 % Co-advisers
-\ntaddperson{adviser}(c,m){John Co-Adviser, Associate Professor, IST}
+\ntaddperson{adviser}(c,m){John Co-Adviser}
+      [position=Associate Professor, institution=IST]
 \end{latexcode}
 
 Valid role codes: \texttt{a}~(adviser), \texttt{c}/\texttt{co}~(co-adviser),
 \texttt{t}~(tutor).  Gender codes: \texttt{m}~(male), \texttt{f}~(female).
+The \texttt{title}, \texttt{position}, and \texttt{institution} fields are
+all optional; a legacy \texttt{\{name, position, institution\}} comma
+string is still accepted too, but is deprecated (see
+Appendix~\ref{app:internals}).
 
 %%-----------------------------------------------------------------------
 \subsection{Evaluation Committee}
@@ -667,10 +790,14 @@ Valid role codes: \texttt{a}~(adviser), \texttt{c}/\texttt{co}~(co-adviser),
 Committee members are only printed when \texttt{docstatus=final}
 (or when forced with \verb!\ntsetup{print/committee=true}!):
 \begin{latexcode}
-\ntaddperson{committee}(c,m){Chair Name, Full Professor, NOVA University Lisbon}
-\ntaddperson{committee}(r,m){Rapporteur, Associate Professor, University of Porto}
-\ntaddperson{committee}(m,f){Member Name, Assistant Professor, University X}
-\ntaddperson{committee}(g,f){Guest Member, Position, Institution}
+\ntaddperson{committee}(c,m){Chair Name}
+      [position=Full Professor, institution=NOVA University Lisbon]
+\ntaddperson{committee}(r,m){Rapporteur}
+      [position=Associate Professor, institution=University of Porto]
+\ntaddperson{committee}(m,f){Member Name}
+      [position=Assistant Professor, institution=University X]
+\ntaddperson{committee}(g,f){Guest Member}
+      [position=Position, institution=Institution]
 \end{latexcode}
 
 Valid roles: \texttt{c}~(chair), \texttt{r}~(rapporteur/arguente),
@@ -1011,7 +1138,7 @@ Place \verb!.bib! files in \verb!4-Bibliography/!.
 \ntaddfile{quote}{quote}
 % Dedication, quote, and acknowledgements are skipped in 'working' mode.
 
-% Integrity statement (school-specific files available in NOVAthesisFiles)
+% Integrity statement (school-specific files available in novathesisFiles)
 \ntaddfile{statement}[en]{univ-school/statement-en}
 \end{latexcode}
 
@@ -1074,6 +1201,11 @@ To restrict a chapter to specific document types, pass an optional list:
 
 The same optional doctype filter applies to appendices and annexes.
 
+By default, the appendix/annex chapter heading shows only the number
+(e.g.\ a big ``A''), while the PDF bookmark already reads ``Appendix A''.
+Set \texttt{print/appendixname=true} to also prefix ``Appendix''/``Annex''
+to the printed heading -- see the \texttt{print/appendixname} option.
+
 %%-----------------------------------------------------------------------
 \subsection{Custom Covers}
 \label{sub:custom_covers}
@@ -1091,8 +1223,8 @@ To override an automatically-generated cover with a custom file:
 \label{sub:bundled_images}
 %%-----------------------------------------------------------------------
 
-NOVAthesis bundles a set of institutional logo images in
-\verb!NOVAthesisFiles/Images/!.  These files are \emph{not} in the default
+\novathesis\ bundles a set of institutional logo images in
+\verb!novathesisFiles/Images/!.  These files are \emph{not} in the default
 graphics search path, so reference them with the \latexinline{\DIRIMAGES}
 macro (or copy them to \verb!5-Figures/! to use just the file name):
 
@@ -1103,7 +1235,7 @@ macro (or copy them to \verb!5-Figures/! to use just the file name):
 Table~\ref{tab:bundled_images} shows the available images.
 
 \begin{table}[htb]
-  \caption{Institutional logo images bundled in \texttt{NOVAthesisFiles/Images/}.}
+  \caption{Institutional logo images bundled in \texttt{novathesisFiles/Images/}.}
   \label{tab:bundled_images}
   \centering\small
   \begin{ShadedTabularX}{\textwidth}{llX}
@@ -1251,7 +1383,33 @@ make BATCH=1                    # batch mode, never stops at errors
 make TL=2024                    # use the TeX Live 2024 release
 make NT="doctype=msc,lang=pt"   # override \ntsetup options (see below)
 make FILE=mythesis              # explicit root file
+make SIZE=10                    # cap the final PDF at ~10MB (see below)
 \end{bashcode}
+
+\paragraph{Capping the File Size.}
+\label{sub:make_size}
+Some submission systems (repositories, conference portals, \dots) enforce a
+maximum \gls{PDF} size. \verb!SIZE=x! (megabytes) shrinks the build to fit:
+after the normal \LaTeX{} run, \novathesis{} binary-searches, via
+Ghostscript, the lowest raster-image resolution that keeps the \gls{PDF}
+under \texttt{x}~MB, and re-embeds every image at that resolution. Vector
+graphics, fonts and text are untouched — only raster images (photos,
+screenshots, rasterised plots) are resampled, so a document with little or
+no raster content may never reach a very small target; when that happens
+the build still succeeds, with a warning, producing the smallest \gls{PDF}
+it could reach.
+
+\begin{bashcode}
+make SIZE=10           # build, then shrink to about 10MB
+make lua SIZE=5 NT="lang=pt"
+\end{bashcode}
+
+\noindent Requires Ghostscript (\texttt{gs}) on \texttt{PATH}. The
+pre-shrink build is kept as \verb!<FILE>.pdf.orig! next to the shrunk
+\verb!<FILE>.pdf!, so re-running \texttt{make} without \verb!SIZE! restores
+full quality. Because downsampling rewrites every image stream,
+re-validate \gls{PDFA} compliance (Section~\ref{sub:pdfa}) if you combine
+\verb!SIZE! with \verb!docstatus=final!.
 
 \paragraph{Overrides.} The \verb!NT! variable accepts any comma-separated
 list of \latexinline{\ntsetup} options; they take precedence over the values

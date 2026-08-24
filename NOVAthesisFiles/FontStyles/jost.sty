@@ -1,0 +1,72 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/jost.sty
+%% NOVA thesis configuration file
+%%
+%% Customization of fonts to use Jost font set
+%% Requires XeLaTeX or LuaLaTeX
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/jost.sty}%
+
+
+%%=======================================================================
+%% ENGINE CHECK
+%%=======================================================================
+
+\NTRequireEngine{style/font=jost}{lua,xe}
+
+
+%%=======================================================================
+%% FONT VERIFICATION
+%%=======================================================================
+
+\ntcheckfonts{Jost}{Regular,Bold,Italic,BoldItalic}
+
+
+%%=======================================================================
+%% FONT VERIFICATION
+%%=======================================================================
+
+\RequirePackage{fontspec}
+
+
+%%=======================================================================
+%% FONT SELECTION
+%%=======================================================================
+
+% Jost - Elegant sans serif font
+\setmainfont{Jost}[
+  Path           = \DIRFONTSTYLES/Fonts/,
+  Ligatures = {TeX, Common, Discretionary},
+  Extension      = .ttf,
+  Scale     = MatchLowercase, % Automatically scales to match surrounding text height
+  UprightFont    = *-Regular,
+  ItalicFont     = *-Italic,
+  BoldFont       = *-Bold,
+  BoldItalicFont = *-BoldItalic,
+]
+\renewcommand*{\FontPrettyName}{Jost}
+
+% Jost for sans
+\setsansfont{Jost}[
+  Path           = \DIRFONTSTYLES/Fonts/,
+  Ligatures = {TeX, Common, Discretionary},
+  Extension      = .ttf,
+  Scale     = MatchLowercase, % Automatically scales to match surrounding text height
+  UprightFont    = *-Regular,
+  ItalicFont     = *-Italic,
+  BoldFont       = *-Bold,
+  BoldItalicFont = *-BoldItalic,
+]
+\renewcommand*{\FontPrettyNameSans}{Jost}
+
+% JetBrains Mono for monospace
+  \setmonofont{JetBrains Mono}[
+    LetterSpace=-3.0,
+    Ligatures = {TeX},
+    Scale = MatchLowercase, % Automatically scales to match surrounding text height
+  ]
+\renewcommand*{\FontPrettyNameMono}{JetBrains Mono}
+
+% Math font with Jost scaling
+% \RequirePackage[utopia]{newtxmath}

@@ -1,10 +1,10 @@
 %!TEX root=template.tex
 
 %% ----------------------------------------------------------------------------
-%%  NOVATHESIS — nt-render-matter.sty
+%%  novathesis — nt-render-matter.sty
 %% ----------------------------------------------------------------------------
 %%
-%% Version 8.0.2 (2026-08-07)
+%% Version 8.2.0 (2026-08-21)
 %% Copyright (C) 2004-26 by João M. Lourenço <joao.lourenco@fct.unl.pt>
 %% Departamento de Informática (www.di.fct.unl.pt)
 %% Faculdade de Ciências e Tecnologia (www.fct.unl.pt)
@@ -42,33 +42,23 @@
     \ifoptionequal{/novathesis/media}{paper}{\openright}{\openany}%
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% SPACING FIX (bibliography anchor)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\newcommand{\@ntfixspacing}[2]{%
-    \bgroup%
-    \NewMemStore{NtFixSpacingString}%
-    \noindent
-    \SetNtFixSpacingString()={The \href{https://github.com/joaomlourenco/novathesis}{NOVAthesis} template (v\novathesisversion)~\@ntcite{novathesis-manual} @ \todayiso. (12cc90221730b8ba41bb3b1f8b517acd)}%md5
-    \renewcommand*{\bibfont}{\hypersetup{allcolors=#1}\color{#1}%
-     \sffamily\fontsize{#2}{#2}\selectfont}%
-    \defbibheading{bibliography}[\bibname]{%
-    \ \textbf{##1}\\[-20pt]}%
-    \refsection%
-    \begin{minipage}{\linewidth}%
-    \bibfont%
-    \GetNtFixSpacingString()\par%
-    \printbibliography%
-    \end{minipage}%
-    \endrefsection%
-    \egroup%
-}
-
-\newcommand{\ntfixspacing}{%
-  \@ntfixspacing{white}{0.01}%
-  % \@ntfixspacing{blue}{16}%
-}
+% REMOVED in 8.0.4: \ntfixspacing / \@ntfixspacing.
+%
+% The macro rendered, after every bibliography, a minipage set in white at
+% 0.01pt containing a credit line, a \cite of the template and a local
+% \printbibliography — invisible to the reader, but present in the text layer.
+% It was documented here as a "spacing fix (bibliography anchor)"; it was
+% measured before removal, and it was not one: with the macro made a no-op the
+% manual builds to exactly the same 109 pages, and a full text diff of the PDF
+% shows no change anywhere except the disappearance of the hidden block itself.
+%
+% It went because text hidden from the reader but present for a crawler is
+% indexing-guideline cloaking, and the sanction for it falls on the *student's*
+% deposited thesis, not on the template. Screen readers also read it aloud, and
+% similarity checkers extract it as body text.
+%
+% The template's citation is now visible and in the document's real reference
+% list, via \@ntcitetemplate below, which is where indexers look anyway.
 
 %% FRONT MATTER COMPONENTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -173,6 +163,7 @@
                 {\GetSdgString(en)}%
                 {\GetSdgString(\@LSHORT)}:}\\[1ex]
       \edef\@sdgtype{\option{/novathesis/print/sdgs/type}}
+      \ntchecksdgs{\@LSHORT}{\@sdgtype}%
       \IfFileExists{\DIRIMAGES/sdg-\@LSHORT/1-\@sdgtype.pdf}
           {\def\@spnfolder{\DIRIMAGES/sdg-\@LSHORT}}
           {\def\@spnfolder{\DIRIMAGES/sdg-en}}
@@ -325,14 +316,50 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MAIN & BACK MATTER COMPONENTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \PrintAddedFile{chapter} already loops internally (via \@nt@loadallfiles)
+% over every chapter file registered for the current doctype, so a single
+% call -- not a per-item \@nt@foralllist wrapper -- is the complete behavior.
 \newcommand*{\ntprintchapters}{%
-    \@nt@foralllist{file}{chapter}{\PrintAddedFile{chapter}}%
+    \PrintAddedFile{chapter}%
 }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Appendixes and Annexes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Extension point a chapter style can place next to its chapter number
+% (same font, same box) to opt in to the print/appendixname option below.
+% Empty by default -- i.e. inert for every style that never references it.
+% Styles that already print \@chapapp unconditionally as part of their own
+% design (bluebox, elegant: "Chapter"/"Appendix"/"Annex" on every chapter)
+% have no reason to reference it at all.
+%
+% A single \pretocmd{\printchapternum}{\@chapapp\space}{}{} applied equally
+% to every style used to live here instead, but several styles (bar, isel,
+% ist, ist2, vz34, vz43) don't render \thechapter directly inside
+% \printchapternum -- it's nested inside a \hfill-ed box, a \resizebox, or
+% deferred entirely into \printchaptertitle -- so prepending text to the
+% *call* just floats it at the left margin, disconnected from the number
+% (e.g. bar.sty: "Appendix" top-left, the boxed "A" a line below). Each
+% style instead places \ntchapnumappendixname itself, exactly where its
+% own layout wants the label to sit.
+\newcommand*{\ntchapnumappendixname}{}
+
+% When print/appendixname is active, make \ntchapnumappendixname expand to
+% "Appendix "/"Annex " for the rest of the appendix/annex section -- the
+% PDF bookmark string already contains it (see the \texorpdfstring
+% branches of \thechapter in \ntprintappendices/\ntprintannexes below), so
+% this only affects what is drawn on the page, never causing a double
+% prefix in the bookmarks. This does NOT touch \thechapter itself:
+% \thechapter also feeds the chapter mark/running head, and embedding
+% \@chapapp (a babel caption) there corrupts \reserved@a (see the comment
+% further down).
+\newcommand*{\nt@maybeaddappendixname}{%
+  \iftoggle{/novathesis/print/appendixname}{%
+    \renewcommand*{\ntchapnumappendixname}{\@chapapp\space}%
+  }{}%
+}
+
 \newcommand{\shiftbookmarks}[2][1]{%
   \begingroup
     \@for\@secname:={part,chapter,section,subsection,subsubsection,paragraph,subparagraph}\do{%
@@ -358,6 +385,7 @@
 \newcommand*{\ntprintappendices}{%
   \iffileadded{appendix}{%
     \appendix%
+    \nt@maybeaddappendixname%
     % Both appendix and annex chapters use toclevel@appendix for their bookmark
     % level (memoir sets \anappendixtrue, which makes \@chapter call
     % \addcontentsline{toc}{appendix}{...}; hyperref then resolves the bookmark
@@ -393,7 +421,9 @@
     % rather than "Appendix A.1 Title".  Subsection levels inherit this fix
     % automatically because \thesubsection = \thesection.\arabic{subsection}.
     \renewcommand{\thesection}{\Alph{chapter}.\arabic{section}}%
-    \@nt@foralllist{file}{appendix}{\PrintAddedFile{appendix}}%
+    % See \ntprintchapters: \PrintAddedFile already loops over every
+    % registered appendix file internally, so a single call suffices.
+    \PrintAddedFile{appendix}%
     % If there are no annexes, reset now; if annexes follow, they will
     % overwrite \cftchapterpresnum with \annexname:\space anyway.
     \iffileadded{annex}{}{%
@@ -410,6 +440,7 @@
 \newcommand*{\ntprintannexes}{%
   \iffileadded{annex}{%
     \annex%
+    \nt@maybeaddappendixname%
     % Same toclevel@appendix key as for appendices (see comment above).
     \expandafter\def\csname toclevel@appendix\endcsname{1}%
     % Same .toc-marker approach as \ntprintappendices, but switching the
@@ -432,7 +463,9 @@
     % Redefine \thesection to use \Roman{chapter} directly, so section
     % bookmarks read "I.1 Title" rather than "Annex I.1 Title".
     \renewcommand{\thesection}{\Roman{chapter}.\arabic{section}}%
-    \@nt@foralllist{file}{annex}{\PrintAddedFile{annex}}%
+    % See \ntprintchapters: \PrintAddedFile already loops over every
+    % registered annex file internally, so a single call suffices.
+    \PrintAddedFile{annex}%
     % Reset \cftchapterpresnum and \cftchapternumwidth to their memoir defaults
     % so any chapter-level TOC entries after annexes are not affected.
     \addtocontents{toc}{%
@@ -487,6 +520,19 @@
 
 
 \newcounter{nadv}
+% \ntforeachperson callback for \TheAdvisersSignatures, curried with
+% (space,role,place,date); title/position/institution are ignored, only
+% the name and gender feed the signature line.
+\newcommand{\@nt@advisersignature}[9]{%
+  % #1=space #2=role #3=place #4=date (curried)
+  % #5=title #6=name #7=position #8=institution #9=gender
+  \stepcounter{nadv}
+  \StatementOneSignature[#1]
+    {\GetAdviserString(pref,#2,1,#9,\@LANG@MAIN)}
+    {#6}
+    {#3}% place
+    {#4}% date
+}
 \NewDocumentCommand { \TheAdvisersSignatures } { O{20mm} m m m }
   % #1 = space to signature rule
   % #2 = a (only advisers) | a,c (both advisers and co-advisers)
@@ -494,20 +540,9 @@
   % #4 = ISO DATE
   {
     \begin{tightcenter}
-      \ifoptiondefined{/@nt/adviser/#2/pair}{%
-        \optionlistdo{/@nt/adviser/#2/pair}{%
-            % \ifnum\arabic{nadv}=2\relax
-            %   ~\\[1ex]
-            % \fi
-            \stepcounter{nadv}
-            \StrCut{##1}{/}\stgender\stname
-            \StatementOneSignature[#1]
-              {\GetAdviserString(pref,#2,1,\stgender,\@LANG@MAIN)}
-              {\stname}
-              {#3}% place
-              {#4}% date
-        }%
-      }{}%
+      \ifnum\ntpersoncount{adviser}{#2}>0\relax%
+        \ntforeachperson{adviser}{#2}{\@nt@advisersignature{#1}{#2}{#3}{#4}}%
+      \fi%
     \end{tightcenter}
   }
 
@@ -557,28 +592,16 @@
             {\bookmark[level=0, dest=\HyperLocalCurrentHref]{\contentsname}
              \tableofcontents*}%
     \fi
-    \ifoptiondefined{/@nt/listof/\@matter}{
+    \@nt@listof@ifdefined{\@matter}{
       \edef\@nt@listof@bkmtitle{\GetBkmString(listof,\@LANG@MAIN)}%
       \clearforchapter%
       \phantomsection%
       \bookmark[level=0, dest=\HyperLocalCurrentHref]{\@nt@listof@bkmtitle}%
-      \optionlistdo{/@nt/listof/\@matter}{##1}%
+      \@nt@listof@run{\@matter}{##1}%
     }{}%
     \NTRunHook{listof/post}%
 }
 
-
-\newcommand*{\option@listmatch}[2]{
-    % \typeout{NT LISTMATCH [#1] [#2]}%
-    \StrCut{#2}{=}\option@listmatch@key\option@listmatch@value%was xStrCut
-    % \typeout{K=\option@listmatch@key ~V=\option@listmatch@value}%
-    \IfStrEq{#1}{\option@listmatch@key}{\listbreak}{}%
-}%
-\options{/handlers/getval/.new operation={%
-    % \typeout{NT GETVAL [#1] [#2]}%
-    \optionlistdo{#1}{\option@listmatch{#2}{##1}}%
-    }%
-}
 
 % Glossary sources are bib2gls .bib files.  Each file registered with
 %     \ntaddfile{glossaries}[<type>]{<name>}
@@ -595,7 +618,7 @@
     {\IfFileExists{#1.tex}
        {\ClassError{novathesis}
           {Glossary source '#1.tex' is in the old (7.10.x) format}
-          {NOVAthesis 8.0 keeps glossary entries in .bib files, read by
+          {novathesis 8.0 keeps glossary entries in .bib files, read by
            bib2gls, instead of .tex files read by makeglossaries.^^J
            Run 'make glsbib' to convert your entry files, then CHECK THE SORT
            KEYS: the converter silently drops them, which reorders any entry
@@ -642,19 +665,63 @@
 %% BIBLIOGRAPHY & INDEXING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Add the template's own reference to the document's bibliography.
+%
+% The entry must land in refsection 0 — the document's *main* reference list —
+% because that is the only place that counts: bibliographic indexers (Google
+% Scholar among them) count a citation by parsing the reference list of the
+% citing document, so a reference confined to a local \refsection, or merely
+% printed as a formatted string elsewhere, is invisible to them.
+%
+% It is issued here, immediately before \printbibliography, rather than from
+% \AfterPreamble: at \begin{document} biblatex has not yet read the .bbl, so an
+% earlier \nocite raises a spurious "Citation 'novathesis-manual' undefined"
+% warning on every single build.
+%
+% Opt out with \ntsetup{cite/template=false}.
+\newcommand*{\@ntcitetemplate}{%
+  \nocite{novathesis-manual}%
+}
+
+% Tell the author, once per build, that the reference was added and how to
+% remove it.  Silent when the option is off (the choice was already made, and
+% nagging about it would be rude) and when docstatus=final, so that the build
+% of the document actually being submitted carries no chatter.
+%
+% Every line is prefixed with "[novathesis]" because the Makefile filters the
+% engine output through texfot, which discards ordinary \typeout lines; that
+% prefix is the pattern texfot is told to --accept, and it is used for nothing
+% else.  Without it this message would exist only in the .log, where nobody
+% would read it.
+\AtEndDocument{%
+  \ifdocfinal{}{%
+    \iftoggle{/novathesis/cite/template}{%
+      \typeout{^^J%
+[novathesis] ---------------------------------------------------------^^J%
+[novathesis] The reference to the template (v\novathesisversion) was added to your^^J%
+[novathesis] bibliography.  novathesis is free, and citations are the only^^J%
+[novathesis] currency in which the work is repaid -- please consider^^J%
+[novathesis] keeping it.  DOI: 10.5281/zenodo.21938603^^J%
+[novathesis]^^J%
+[novathesis] ---------------------------------------------------------^^J%
+      }%
+    }{}%
+  }%
+}
+
 \newcommand*{\ntprintbibsingle}[1][]{%
   \NTRunHook{printbib/pre}%
+  \@ntcitetemplate%
   \printbibliography[#1]%
-  \ntfixspacing%
   \NTRunHook{printbib/post}%
 }
 
 \newcommand*{\ntprintbibseparate}[1][]{%
   \NTRunHook{printbib/pre}%
+    \@ntcitetemplate%
     \printbibliography[nottype=online]% Print the main bibliography.
     % Print the web references separately, under their own title.
     \printbibliography[title=\option{/novathesis/print/webography},type=online]%
-  \ntfixspacing%
   \NTRunHook{printbib/post}%
 }
 
@@ -674,11 +741,16 @@
     % fine tune label width
     \setlength{\labelnumberwidth}{10pt}%
     % Print the bibliography with no title, passing any extra options
+    % The heading is set white at 0.01pt to occupy the heading slot without
+    % showing the word "Bibliography" above a two-item list; the negative
+    % vspace then pulls the list tight.  That is layout, and it stays.  The
+    % tracking fingerprint that used to be appended to it does not: hidden
+    % text is hidden text, whatever it says.
     \defbibheading{ntlocalbib}{%
       {\par\vspace*{-1.25ex}}
       \textcolor{white}
                 {\fontsize{0.01}{1}\selectfont\noindent\hspace*{-\labelnumberwidth}
-                 \bibname~(12cc90221730b8ba41bb3b1f8b517acd)}%
+                 \bibname}%
       \vspace*{-\baselineskip-\parskip}
     }
     \newrefcontext[sorting=ynt]%
@@ -686,6 +758,16 @@
   \endgroup
 }
 
+% No longer called automatically from \ntprintcopyright: it used to carry
+% the "produced with novathesis" mini-colophon (\SetAcknowledgmentsString),
+% which is now empty in every language file -- that credit lives on the
+% Colophon page instead, and duplicating it here served no one. The
+% mechanism itself (a small footnote-style block + a local citation list)
+% stays available for a school to invoke deliberately for its own
+% acknowledgements/funding credits, as ulisboa-fmv's statement file
+% already shows (commented out): set \SetAcknowledgmentsString to your
+% own text and call \ntprintacknowledgementsblock from wherever you want
+% it to appear.
 \newcommand{\ntprintacknowledgementsblock}[1][\scriptsize]{%
     \NTRunHook{acknowledgementsblock/pre}%
       \refsection%
@@ -705,7 +787,6 @@
         \NTRunHook{copyright/pre}%
         \ntprintcopyrightpage%
         \NTRunHook{copyright/post}%
-        \ntprintacknowledgementsblock%
       \endgroup
     }{}%
    }{}%
@@ -715,7 +796,7 @@
 \newcommand*{\ntprintcopyrightpage}{%
   \ifmaindoc{% only print if a main document
     \iftoggle{/novathesis/print/copyright}{% if copuyright toggle is on
-      \InputIfFileExistsInDirsTF {copyright.clo} 
+      \InputIfFileExistsInDirsTF {copyright.clo}
         {
           {\DIRSCHOOLS/\@UNIV/\@SCHL},
           {\DIRSCHOOLS/\@UNIV},
@@ -731,6 +812,121 @@
 }
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Colophon
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A labelled Colophon page in the back matter: the traditional
+% book-design place for production details (typesetting engine,
+% template, PDF/A status, build date). Prints at every docstatus,
+% including working, since it is now the template's only credit line --
+% the old copyright-page mini-colophon (\SetAcknowledgmentsString) was
+% removed rather than left to duplicate this page (see its own comment
+% for schools that still want that block for their own purposes).
+%
+% Fully multilingual: \GetBkmString(colophon,...) for the page title
+% and \GetColophonString / \GetColophonPdfaString /
+% \GetColophonNotPdfaString / \GetColophonBuildString (all defined per
+% language in novathesisFiles/Strings/strings-*.ldf) for the body, same
+% as every other template-generated string, keyed by \@LANG@MAIN. No
+% zhs/zht fallback needed: lang/main is a choice restricted to the same
+% 14 languages these strings cover, so \@LANG@MAIN can never be zhs/zht
+% (those exist only for abstract translations, via a separate mechanism).
+%
+% Opt out with \ntsetup{print/colophon=false}.
+%
+% Fixed constant, reused verbatim from the hidden white-text credit this
+% colophon replaces (see the "REMOVED in 8.0.4" note near the top of this
+% file) -- not a hash of anything computed at build time.
+\def\@nt@colophonbuildid{12cc9022}
+
+% Curated display name(s) for the FontStyles/*.sty style currently loaded
+% by \ntsetup{style/font=...}. Each FontStyles file registers its own
+% name(s) locally, right where it calls \setmainfont/\setromanfont (main),
+% \setsansfont (sans), \setmonofont (mono/tt) and \setmathfont or a math
+% package (math) -- see any file under novathesisFiles/FontStyles/ for the
+% pattern; a font file that doesn't set a given role (e.g. no separate
+% math font) simply doesn't touch that macro, and it stays empty.
+%
+% \FontPrettyName (main) is the only mandatory one: the safety-net
+% \IfStrEq check below the font-loading code falls back to the raw
+% style/font value itself if it is still empty after loading, so an
+% unrecognised/custom school font never breaks the build -- it just
+% prints plainly. The sans/mono/math variants are optional and stay
+% empty when not set; consumers must check for blankness before use.
+\newcommand*{\FontPrettyName}{}
+\newcommand*{\FontPrettyNameSans}{}
+\newcommand*{\FontPrettyNameMono}{}
+\newcommand*{\FontPrettyNameMath}{}
+
+% Optional colophon detail, appended right after \FontPrettyName -- which
+% no longer carries its own trailing period (see \SetColophonString in
+% strings-*.ldf): this macro supplies the sentence's final "." either way,
+% so the colophon always ends in exactly one, never a dangling
+% "). (sans: ...)" fragment tacked on after it.
+%
+% Folds whichever of \FontPrettyNameSans/Mono/Math the loaded font file
+% set into ", with A for sans, B for mono and C for math." -- properly
+% comma/"and"-joined (2 items use just "and", 3+ use a comma-separated
+% list with "and" before the last) via \FormatNamesAsList
+% (nt-render-persons.sty), the same joiner already used for adviser/
+% committee name lists, so the "and" is pulled from \GetAndString and is
+% already correctly localized in all 14 languages. Prints just "." when
+% none of the three were set.
+%
+% The "with .. for sans/mono/math" glue words themselves are deliberately
+% left in English across all languages, same as the "sans"/"mono"/"math"
+% labels they attach to (see \FontPrettyNameSans and friends above): they
+% are typographic jargon, not document prose, and translating a sentence
+% frame (as opposed to the single "and" word \FormatNamesAsList already
+% localizes for us) was judged out of proportion to what was asked.
+\newcommand*{\@nt@colophonfontdetails}{%
+  \begingroup
+    \def\@nt@cfd@list{}%
+    \def\@nt@cfd@sep{}%
+    \IfStrEq{\FontPrettyNameSans}{}{}{%
+      \edef\@nt@cfd@list{\@nt@cfd@list\@nt@cfd@sep\FontPrettyNameSans{} for sans}%
+      \def\@nt@cfd@sep{,}%
+    }%
+    \IfStrEq{\FontPrettyNameMono}{}{}{%
+      \edef\@nt@cfd@list{\@nt@cfd@list\@nt@cfd@sep\FontPrettyNameMono{} for mono}%
+      \def\@nt@cfd@sep{,}%
+    }%
+    \IfStrEq{\FontPrettyNameMath}{}{}{%
+      \edef\@nt@cfd@list{\@nt@cfd@list\@nt@cfd@sep\FontPrettyNameMath{} for math}%
+    }%
+    \IfStrEq{\@nt@cfd@list}{}{.}{,~with~\FormatNamesAsList{\@nt@cfd@list}.}%
+  \endgroup
+}
+
+\newcommand*{\ntprintcolophon}{%
+  \ifmaindoc{%
+    \iftoggle{/novathesis/print/colophon}{%
+      \chapter*{\GetBkmString(colophon,\@LANG@MAIN)}%
+      \NTRunHook{colophon/pre}%
+      \begin{center}
+        \IfFileExists{\DIRIMAGES/novathesis-insignia-outline.pdf}
+          {\includegraphics[width=12mm]{\DIRIMAGES/novathesis-insignia-outline}}
+          {}%
+      \end{center}
+      \bigskip
+      \noindent
+      \GetColophonString(\@LANG@MAIN)%
+      \@nt@colophonfontdetails%
+      \par\bigskip
+        \fullcite{novathesis-manual}%
+      \ifdocfinal{%
+        \iftoggle{/novathesis/pdfa}%
+          {\GetColophonPdfaString(\@LANG@MAIN)}%
+          {\GetColophonNotPdfaString(\@LANG@MAIN)}%
+      }{%
+        \GetColophonNotPdfaString(\@LANG@MAIN)%
+      }%
+      \par\bigskip
+      {\scriptsize \GetColophonBuildString(\@LANG@MAIN)}%
+      \NTRunHook{colophon/post}%
+    }{}%
+  }{}%
+}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -819,16 +1015,24 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Abstract
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Font names below use "~" instead of literal spaces: under ExplSyntaxOn,
+% space (catcode 9) is ignored, but "~" is catcode 10 (an ordinary
+% interword space), so multi-word font names survive untouched. This is
+% safe here because IfFontExistsTF/newfontfamily only query the OS font
+% backend with a string -- unlike \InputIfFileExists/\input/\RequirePackage
+% elsewhere in this file, nothing here reads and tokenizes an external
+% file's contents under these catcodes.
+\ExplSyntaxOn
 \IfSubStr{,\@LANG@LOADED,}{,zhs,}{%
   \iftutex
     \ifcsname nt@cjkfontSC\endcsname\else
-      \IfFontExistsTF{PingFang SC}
-        {\newfontfamily\nt@cjkfontSC{PingFang SC}}
-        {\IfFontExistsTF{Noto Sans CJK SC}
-          {\newfontfamily\nt@cjkfontSC{Noto Sans CJK SC}}
-          {\IfFontExistsTF{Heiti SC}
-            {\newfontfamily\nt@cjkfontSC{Heiti SC}}
-            {\newfontfamily\nt@cjkfontSC{Latin Modern Roman}}%
+      \IfFontExistsTF{PingFang~SC}
+        {\newfontfamily\nt@cjkfontSC{PingFang~SC}}
+        {\IfFontExistsTF{Noto~Sans~CJK~SC}
+          {\newfontfamily\nt@cjkfontSC{Noto~Sans~CJK~SC}}
+          {\IfFontExistsTF{Heiti~SC}
+            {\newfontfamily\nt@cjkfontSC{Heiti~SC}}
+            {\newfontfamily\nt@cjkfontSC{Latin~Modern~Roman}}%
           }%
         }%
     \fi
@@ -837,18 +1041,19 @@
 \IfSubStr{,\@LANG@LOADED,}{,zht,}{%
   \iftutex
     \ifcsname nt@cjkfontTC\endcsname\else
-      \IfFontExistsTF{PingFang TC}
-        {\newfontfamily\nt@cjkfontTC{PingFang TC}}
-        {\IfFontExistsTF{Noto Sans CJK TC}
-          {\newfontfamily\nt@cjkfontTC{Noto Sans CJK TC}}
-          {\IfFontExistsTF{Heiti TC}
-            {\newfontfamily\nt@cjkfontTC{Heiti TC}}
-            {\newfontfamily\nt@cjkfontTC{Latin Modern Roman}}%
+      \IfFontExistsTF{PingFang~TC}
+        {\newfontfamily\nt@cjkfontTC{PingFang~TC}}
+        {\IfFontExistsTF{Noto~Sans~CJK~TC}
+          {\newfontfamily\nt@cjkfontTC{Noto~Sans~CJK~TC}}
+          {\IfFontExistsTF{Heiti~TC}
+            {\newfontfamily\nt@cjkfontTC{Heiti~TC}}
+            {\newfontfamily\nt@cjkfontTC{Latin~Modern~Roman}}%
           }%
         }%
     \fi
   \fi
 }{}
+\ExplSyntaxOff
 
 \newcommand*{\printabstracttitle}[1]{%
   \begingroup
@@ -1026,9 +1231,17 @@
         {\ClassError{novathesis}{Could not find the font: \option{/novathesis/style/font}}{}}
     \else
       \ClassError{novathesis}
-                 {Cann not load the font: \option{/novathesis/style/font}. Are you using XeLaTeX or LuaLaTeX?}{}
+                 {Cannot load the font: \option{/novathesis/style/font}. Are you using XeLaTeX or LuaLaTeX?}{}
     \fi
   }
+
+% Safety net for the mandatory main-font name: a raw font name typed
+% directly in style/font (the \setmainfont branch above) or a school's
+% own FontStyles-less custom font never sets \FontPrettyName, so fall
+% back to the raw option value itself.
+\IfStrEq{\FontPrettyName}{}
+  {\renewcommand*{\FontPrettyName}{\option{/novathesis/style/font}}}
+  {}
 
 
 % force page color to white in xelatex and lualatex
