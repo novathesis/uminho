@@ -1,0 +1,107 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Config/2_biblatex.tex
+%% NOVA thesis configuration file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE Config/2_biblatex.tex}%
+
+%%============================================================
+%%  BIBLIOGRAPHY CUSTOMIZATION / OPTIONS
+%%============================================================
+
+%%------------------------------------------------------------
+%%  GENERAL BEHAVIORAL OPTIONS
+%%------------------------------------------------------------
+\ntbibsetup{
+  backend      = biber,   % Use 'biber' (recommended) or 'bibtex'
+  giveninits   = true,    % Print only initials of given name
+  maxbibnames  = 1000,    % Do not use 'et al' in the bibliography (list all authors)
+  backref      = true,    % List page(s) where each entry is cited
+  backrefstyle = three,   % Compact style for back-references
+  urldate      = iso,     % Show access dates in ISO format (YYYY-MM-DD)
+  date         = iso,     % Show publication dates in ISO format (YYYY-MM-DD)
+  seconds      = true,    % Include seconds in ISO dates if available
+}
+
+
+%%============================================================
+%%  BIBLIOGRAPHY STYLE (Uncomment exactly ONE block below)
+%%============================================================
+
+%%------------------------------------------------------------
+%% 1. NUMBERED ORDER BY LAST NAME OF FIRST AUTHOR (Default)
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style     = numeric-comp,
+%   sortcites = true,
+%   sorting   = nyt,
+% }
+
+
+%%------------------------------------------------------------
+%% 2. NUMBERED ORDER BY CITATION (Sequential)
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style     = numeric-comp,
+%   sortcites = true,
+%   sorting   = none,
+% }
+
+
+%%------------------------------------------------------------
+%% 3. ALPHA CITATION ORDER BY LAST NAME OF FIRST AUTHOR
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style     = alphabetic,
+%   sortcites = true,
+%   sorting   = nyt,
+% }
+
+
+%%------------------------------------------------------------
+%% 4. AUTHOR-YEAR COMPACT SORTED BY NAME AND YEAR
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style     = authoryear-comp,
+%   sortcites = true,
+%   sorting   = nyt,
+% }
+
+
+%%------------------------------------------------------------
+%% 5. APA-LIKE CITATION (Requires biber)
+%% (Follows strict APA 7th edition rules; alternative to style 4)
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style   = apa,
+%   natbib  = true,
+% }
+
+
+%%------------------------------------------------------------
+%% 6. IEEE STYLE (Engineering / CS)
+%% (Similar to style 1 but with IEEE-specific formatting)
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style = ieee,
+% }
+
+
+%%------------------------------------------------------------
+%% 7. VANCOUVER STYLE (Medicine / Health Sciences)
+%% (Similar to style 2 but with Medical standard formatting)
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style = vancouver,
+% }
+
+
+%%------------------------------------------------------------
+%% 8. CHICAGO AUTHOR-DATE STYLE (Social Sciences)
+%% (Follows Chicago Manual of Style; alternative to style 4)
+%%------------------------------------------------------------
+% \ntbibsetup{
+%   style = chicago-authordate,
+% }
+

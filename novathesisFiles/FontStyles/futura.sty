@@ -1,0 +1,61 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/futura.sty
+%% NOVA thesis configuration file
+%%
+%% Customization of fonts to use Futura fontset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/futura.sty}%
+
+
+%%=======================================================================
+%% ENGINE CHECK
+%%=======================================================================
+
+\NTRequireEngine{style/font=futura}{lua,xe}
+
+
+%%=======================================================================
+%% FONT VERIFICATION
+%%=======================================================================
+
+\ntcheckfonts{Futura}{Regular,Italic,Bold,BoldItalic}
+
+
+%%=======================================================================
+%% FONT SELECTION
+%%=======================================================================
+
+\setmainfont{Futura}[
+  Path           = \DIRFONTSTYLES/Fonts/,
+  Extension      = .ttf,
+  Ligatures      = TeX,
+  UprightFont    = *-Regular,
+  ItalicFont     = *-Italic,
+  BoldFont       = *-Bold,
+  BoldItalicFont = *-BoldItalic,
+]
+\renewcommand*{\FontPrettyName}{Futura}
+
+% Futura is a sans-serif; use as both roman and sans
+\setsansfont{Futura}[
+  Path           = \DIRFONTSTYLES/Fonts/,
+  Extension      = .ttf,
+  Ligatures      = TeX,
+  UprightFont    = *-Regular,
+  ItalicFont     = *-Italic,
+  BoldFont       = *-Bold,
+  BoldItalicFont = *-BoldItalic,
+]
+\renewcommand*{\FontPrettyNameSans}{Futura}
+
+% Use Courier New as fallback for monospace
+\setmonofont[
+  Scale          = 0.95,
+  Ligatures      = TeX,
+]{Courier New}
+\renewcommand*{\FontPrettyNameMono}{Courier New}
+
+% Math font using newtxmath for consistency
+\RequirePackage[libertine]{newtxmath}
+\renewcommand*{\FontPrettyNameMath}{Libertine (newtxmath)}

@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/kieranhealy.sty
+%% NOVA thesis configuration file
+%%
+%% Customization of fonts to use Kieran Healy's fontset (MinionPro, MyriadPro, PragmataPro)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/kieranhealy.sty}%
+
+
+%%=======================================================================
+%% ENGINE CHECK
+%%=======================================================================
+
+\NTRequireEngine{style/font=kieranhealy}{lua,xe}
+
+
+%%=======================================================================
+%% FONT SELECTION
+%%=======================================================================
+
+\setromanfont[
+  Path=\DIRFONTSTYLES/Fonts/,
+  BoldItalicFont = *-Bold-Italic.otf,
+  BoldFont       = *-Bold.otf,
+  ItalicFont     = *-Italic.otf,
+  Ligatures      = {TeX, Common},
+  Numbers        = {OldStyle},
+  Scale          = 1.10,
+]{MinionPro}
+\renewcommand*{\FontPrettyName}{Minion Pro}
+
+\setsansfont[
+  Path=\DIRFONTSTYLES/Fonts/,
+  BoldItalicFont = *-Bold-Italic.otf,
+  BoldFont       = *-Bold.otf,
+  ItalicFont     = *-Italic.otf,
+  Ligatures      = {TeX, Common},
+]{MyriadPro}
+\renewcommand*{\FontPrettyNameSans}{Myriad Pro}
+
+\setmonofont[
+  Path=\DIRFONTSTYLES/Fonts/,
+  Ligatures = TeX,
+  Scale     = 0.90,
+]{PragmataPro}
+\renewcommand*{\FontPrettyNameMono}{Pragmata Pro}

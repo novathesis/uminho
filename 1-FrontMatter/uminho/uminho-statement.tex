@@ -1,0 +1,86 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% uminho/statement.tex
+%% NOVA thesis document file
+%%
+%% Statement
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE uminho/statement.tex}%
+
+\makeatletter
+
+%-----------------------------------------------------------------
+% STATEMENTS OF INTEGRITY AND OF AI USAGE
+%-----------------------------------------------------------------
+
+\NewMemStore{StatementOfIntegrityTextStr}
+\NewMemStore{StatementOfAIUsage}
+
+\SetStatementOfIntegrityTextStr(pt)={%
+  \begin{center}%
+    \textbf{DECLARAÇÃO DE INTEGRIDADE}%
+  \end{center}%
+  \indent Declaro ter atuado com integridade na elaboração do presente trabalho académico e confirmo que não recorri à prática de plágio nem a qualquer forma de utilização indevida ou falsificação de informações ou resultados em nenhuma das etapas conducente à sua elaboração.\\[1ex]
+  \indent Mais declaro que conheço e que respeitei o Código de Conduta Ética da \GetUniversity(\@LANG@MAIN).
+}
+
+\SetStatementOfIntegrityTextStr(en)={%
+  \begin{center}%
+    \textbf{STATEMENT OF INTEGRITY}%
+  \end{center}%
+  \indent I hereby declare having conducted this academic work with integrity. I confirm that I have not used plagiarism or any form of undue use of information or falsification of results along the process leading to its elaboration.\\[1ex]
+  \indent I further declare that I have fully acknowledged the Code of Ethical Conduct of the \GetUniversity(\@LANG@MAIN).
+}
+
+
+\SetStatementOfAIUsage(en)={%
+  \begin{center}%
+    \textbf{DECLARATION ON THE USE OF ARTIFICIAL INTELLIGENCE (AI) TOOLS}%
+  \end{center}%
+    \indent I hereby declare having acted this academic work with integrity and confirm that I have not resorted to any form of undue use of AI tools, nor to the falsification or omission of information, sources, data, results or processes in any of the stages leading to its elaboration.\\[1ex]
+    \indent I further declare that any use of AI tools was done in a transparent and responsible manner, being duly noted in the work, and that I critically verified the accuracy of the content produced with their support, assuming full responsibility for what I submit.\\[1ex]
+    \indent I further declare that I have fully acknowledged the Code of Ethics and Conduct of the \GetUniversity(\@LANG@MAIN), as well as the applicable standards of academic integrity and data protection.
+}
+
+\SetStatementOfAIUsage(pt)={%
+  \begin{center}%
+    \textbf{DECLARAÇÃO DE USO DE FERRAMENTAS DE INTELIGÊNCIA ARTIFICIAL (IA)}%
+  \end{center}%
+    \indent Declaro ter atuado com integridade na elaboração do presente trabalho académico e confirmo que não recorri a qualquer forma de utilização indevida de ferramentas de Inteligência Artificial (IA), nem à falsificação ou omissão de informações, fontes, dados, resultados ou processos em nenhuma das etapas conducentes à sua elaboração.\\[1ex]
+    \indent Declaro ainda que qualquer utilização de ferramentas de IA foi feita de forma transparente e responsável, encontrando-se devidamente assinalada/descrita no trabalho, e que procedi à verificação crítica da exatidão do conteúdo produzido com o seu apoio, assumindo integralmente a responsabilidade pelo que submeto.\\[1ex]
+    \indent Mais declaro que conheço e que respeitei o Código de Ética e Conduta da \GetUniversity(\@LANG@MAIN), bem como as normas aplicáveis de integridade académica e de proteção de dados.
+}
+
+
+\NewMemStore{SignatureLine}
+
+\SetSignatureLine(pt)={%
+  \begin{center}%
+  \begin{tabular}{c@{~}c}%
+  \rule{16em}{0.5pt}, & \rule{16em}{0.5pt}\\[-1ex]%
+  (\GetPlaceStr(\@LANG@MAIN)) & (\GetDateStr(\@LANG@MAIN))%
+  \end{tabular}%
+  \\[2cm]
+    \rule{25em}{0.5pt}\\[-1ex]%
+    (\GetDocAuthor(name))%
+  \end{center}%
+}
+
+\SetSignatureLine(en)={\GetSignatureLine(pt)}
+
+
+
+
+\thispagestyle{plain}%
+
+\null%
+\vfill%
+\GetStatementOfIntegrityTextStr(\@LANG@MAIN)%
+\vfill%
+\GetStatementOfAIUsage(\@LANG@MAIN)%
+\vfill%
+\ontoggle{/novathesis/uminho/signatureline}{%
+  ~\\
+  \GetSignatureLine*(\@LANG@MAIN)%
+}%
+\vfill%

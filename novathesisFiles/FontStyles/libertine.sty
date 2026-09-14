@@ -1,0 +1,24 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/libertine.sty
+%% NOVA thesis configuration file
+%%
+%% Customization of font to use a Linux Libertine font set
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/libertine.sty}%
+
+
+%%=======================================================================
+%% PACKAGE REQUIREMENTS
+%%=======================================================================
+
+\RequirePackage[sb]{libertine}
+\renewcommand*{\FontPrettyName}{Linux Libertine}
+\RequirePackage[varqu,varl]{zi4}% inconsolata
+\renewcommand*{\FontPrettyNameMono}{Inconsolata (zi4)}
+\useosf % osf for text, not math
+\RequirePackage[
+  supstfm   = libertinesups,%
+  supscaled = 1.2,%
+  raised    = -.13em
+]{superiors}

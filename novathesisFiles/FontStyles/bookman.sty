@@ -1,0 +1,20 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FontStyles/bookman.sty
+%% NOVA thesis configuration file
+%%
+%% Customization of fonts to use Bookman fontset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE FontStyles/bookman.sty}%
+
+
+%%=======================================================================
+%% FONT SELECTION
+%%=======================================================================
+
+\ifxeorlua{%
+  \setmainfont{TeX Gyre Bonum}%
+}{%
+  \RequirePackage{bookman}%
+}
+\renewcommand*{\FontPrettyName}{Bookman}
