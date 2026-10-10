@@ -45,8 +45,8 @@
 %                 uminho/ie, uminho/ics, uminho/epsi, uminho/eeg,
 %     UPORTO:     uporto/fcup,
 %     ISCTE-IUL:  iscteiul/eta
-%     IPL:        ipl/isel, ipl/isel/meb,
-%     IPS:        ips/ests,
+%     UPL:        upl/isel, upl/isel/meb,
+%     UPS:        ups/ests,
 %     OTHER:      other/esep, other/huberlin
 %-------------------------------------------------------------
 % \ntsetup{school=ulisboa/fcul}
@@ -94,7 +94,7 @@
 
 
 %-------------------------------------------------------------
-% Print Generative AI Disclosure Satement
+% Print Generative AI Disclosure Statement
 %
 %      DEFAULT: print/aidisclosure <- aidisclose
 %.............................................................
@@ -102,14 +102,14 @@
 %        false —> do not print AI Disclosure
 %   aidisclose —> use '7-aidisclose.tex' + 'aidisclose' package
 % filename.tex —> use '1-Frontmatter/filename.tex' as the
-%                 peersonalized AI Disclosure statement (see example).
+%                 personalized AI Disclosure statement (see example).
 %-------------------------------------------------------------
 % \ntsetup{print/aidisclosure=aidisclosure.tex}
 
 
 
 %------------------------------------------------------------
-% Sustainable Development Goasl (SDG)
+% Sustainable Development Goals (SDG)
 %
 %     DEFAULTS: print/sdgs/list   <- empty
 %               print/sdgs/type   <- inverted
@@ -139,11 +139,14 @@
 %     SDG 16 -> Peace, justice, and strong institutions
 %     SDG 17 -> Partnerships for the goals
 %------------------------------------------------------------
-% \ntsetup{print/sdgs/list={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17}}
+\ntsetup{print/sdgs/list={4,9,10,17}}
 % \ntsetup{print/sdgs/type=inverted | normal | mono}   % default: inverted
 % \ntsetup{print/sdgs/size=2cm}
 % \ntsetup{print/sdgs/hspace=5mm}
 % \ntsetup{print/sdgs/vspace=4mm}
+%
+% To print a statement below the SDG icons, see \ntaddfile{sdgstatement}
+% in 0-Config/4_files.tex, right below the abstracts.
 
 
 
@@ -194,7 +197,7 @@
 %     See \ntsetup{lang=pt} above for the list of valid languages
 %-------------------------------------------------------------
 % \ntsetup{abstractorder={en,pt,zhs,zht}} % with Simplified and Traditional Chinese abstracts
-% \ntsetup{abstractorder={en,pt,uk,gr}}   % With Ukrainian (cyrilic) abstract
+% \ntsetup{abstractorder={en,pt,uk,gr}}   % With Ukrainian (cyrillic) abstract
 
 
 
@@ -217,7 +220,7 @@
 %     DEFAULT: lang/extra <- {it, pl}
 %.............................................................
 %
-%     These are really **extra** languases, besides the main
+%     These are really **extra** languages, besides the main
 %     language and those used in the abstracts.
 %     See \ntsetup{lang=pt} above for the list of valid languages
 %-------------------------------------------------------------
@@ -260,6 +263,21 @@
 %     For each glossary entry, show the page numbers where its was used
 %-------------------------------------------------------------
 % \ntsetup{glossaries/list/reverse=false}
+
+
+
+%-------------------------------------------------------------
+% List all glossary/symbol entries, even those never cited
+%
+%     DEFAULT: glossaries/addall <- false
+%.............................................................
+%
+%     By default the glossary and symbols lists only show the entries
+%     cited in the text (\gls, \glsadd, ...), like the acronyms list.
+%     Set to true to list every entry defined in the glossary and
+%     symbols .bib files (the acronyms list is always use-based).
+%-------------------------------------------------------------
+% \ntsetup{glossaries/addall=true}
 
 
 
@@ -471,10 +489,15 @@
 %         verdana               -> (*)
 %-------------------------------------------------------------
 %
-% -- Exampple 1 --
+% If a font marked (*) is not available (no download possible) or you use pdfLaTeX, the default
+% is an error with instructions.  To use a font that ships with TeX Live instead (with only a
+% warning), turn on the fallback strategy:
+% \ntsetup{style/font/fallback=true}
+%
+% -- Example 1 --
 % \ntsetup{style/font=libertine}
 % 
-% -- Exampple 2 --
+% -- Example 2 --
 % \ntsetup{style/font=Times New Roman}
 % \ntsetup{style/font/attributes={
 %   Extension = .ttf,

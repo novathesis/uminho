@@ -59,7 +59,7 @@
 
 
 %-------------------------------------------------------------
-% File with the qute text.
+% File with the quote text.
 %.............................................................
 %
 % Ignored if 'status=working'
@@ -81,7 +81,7 @@
 %
 % <filename>: -> must be '1-Frontmatter/filename.tex'
 %
-% Specifically for ULISBOA-FMV, the extended asbtract
+% Specifically for ULISBOA-FMV, the extended abstract
 %       \ntaddfile{abstract}[pt-ext]{abstract-pt-ext}
 %-------------------------------------------------------------
 \ntaddfile{abstract}[pt]{abstract-pt}  % Abstract in Portuguese
@@ -95,6 +95,23 @@
 % \ntaddfile{abstract}[zhs]{abstract-zhs}  % Abstract in Chinese (Simplified)
 % \ntaddfile{abstract}[zht]{abstract-zht}  % Abstract in Chinese (Traditional)
 % % \ntaddfile{abstract}[pt-ext]{abstract-pt-ext}  % Extended abstract in Portuguese (e.g., for ulisboa/fmv)
+
+
+
+%-------------------------------------------------------------
+% Statement printed below the SDG icons (see print/sdgs/list in
+% 0-Config/1_novathesis.tex). Optional; same <lang> rules as the
+% abstract above. A language-less file (no [<lang>]) is used as a
+% fallback for any abstract language without its own; if neither
+% exists, nothing is printed.
+%
+%     \ntaddfile{sdgstatement}[<lang>]{<filename>}
+%.............................................................
+%
+% <filename>: -> must be '1-Frontmatter/filename.tex'
+%-------------------------------------------------------------
+\ntaddfile{sdgstatement}[pt]{sdg-statement-pt}
+\ntaddfile{sdgstatement}[en]{sdg-statement-en}
 
 
 
@@ -143,7 +160,7 @@
 %
 % <filename>: -> must be '2-MainMatter/filename.tex'
 %
-% <optional-doctype-list>:  -> A comma-separateed list of doctypes.
+% <optional-doctype-list>:  -> A comma-separated list of doctypes.
 %                              The valid doctypes are listed in file
 %                              '1_novathesis.tex', option 'doctype'.
 %
@@ -162,14 +179,14 @@
 
 
 %-------------------------------------------------------------
-% Apppendices
+% Appendices
 %
 %     \ntaddfile{appendix}[<optional-doctype-list>]{<filename>}
 %.............................................................
 %
 % <filename>: -> must be '2-MainMatter/filename.tex'
 %
-% <optional-doctype-list>:  -> A comma-separateed list of doctypes.
+% <optional-doctype-list>:  -> A comma-separated list of doctypes.
 %                              The valid doctypes are listed in file
 %                              '1_novathesis.tex', option 'doctype'.
 %
@@ -192,7 +209,7 @@
 %
 % <filename>: -> must be '2-MainMatter/filename.tex'
 %
-% <optional-doctype-list>:  -> A comma-separateed list of doctypes.
+% <optional-doctype-list>:  -> A comma-separated list of doctypes.
 %                              The valid doctypes are listed in file
 %                              '1_novathesis.tex', option 'doctype'.
 %
@@ -222,7 +239,7 @@
 %         spine -> The back cover
 %
 % The given file will be used to render the cover <cover-id>
-% Note: if you want to skip prnting the frontpage, do not
+% Note: if you want to skip printing the frontpage, do not
 %       redefine the frontpage! Instead use the command
 %       \ntsetup{print/frontpage=false}
 %-------------------------------------------------------------
